@@ -1,0 +1,8 @@
+redis
+xgboost
+numpy
+scikit-learn
+matplotlib
+pandas
+feast[gcp, redis]
+google-cloud-bigquery

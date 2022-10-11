@@ -1,0 +1,1 @@
+gcloud scheduler jobs run feast-daily-job
