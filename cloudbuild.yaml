@@ -1,3 +1,10 @@
 steps:
-- name: 'bash'
-  args: ['./scripts/apply.sh]
+  # Install dependencies
+  - name: python
+    entrypoint: pip
+    args: ["install", "-e", ".", "--user"]
+
+  # Apply the feature store registry changes
+  - name: python
+    entrypoint: python
+    args: ["setup/apply.py"]
