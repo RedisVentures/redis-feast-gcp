@@ -9,8 +9,7 @@ from feast import (
 )
 from feast.types import Float32, Int64
 
-import config as config
-
+from repo import config
 
 # Define an entity for the state. You can think of an entity as a primary key used to
 # fetch features.

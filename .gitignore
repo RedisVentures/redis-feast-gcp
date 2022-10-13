@@ -3,3 +3,4 @@
 *.ipynb_checkpoints
 *.pkl
 *.csv
+*.egg-info

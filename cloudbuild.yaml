@@ -1,10 +1,4 @@
 steps:
-- name: 'bash'
-  args: ['./feature_store/apply.sh']
-  secretENV: ['REDIS_CONNECTION_STRING', 'REDIS_PASSWORD']
-availableSecrets:
-  secretManager:
-  - versionName: projects/$PROJECT_ID/secrets/redisConnectionString/versions/latest
-    env: 'REDIS_CONNECTION_STRING'
-  - versionName: projects/$PROJECT_ID/secrets/redisPassword/versions/latest
-    env: 'REDIS_PASSWORD'
+- name: 'python'
+  args: ['feature_store/create_feature_store.py']
+
