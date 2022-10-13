@@ -143,8 +143,8 @@ def generate_vaccine_count_features(
         schema=[
             bigquery.SchemaField("date", "TIMESTAMP"),
             bigquery.SchemaField("state", "STRING"),
-            bigquery.SchemaField("weekly_vaccinations_count", "INTEGER"),
             bigquery.SchemaField("lag_1_weekly_vaccinations_count", "INTEGER"),
+            bigquery.SchemaField("weekly_vaccinations_count", "INTEGER"),
             bigquery.SchemaField("lag_2_weekly_vaccinations_count", "INTEGER")
         ],
         skip_leading_rows=1,

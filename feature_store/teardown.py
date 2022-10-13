@@ -12,4 +12,5 @@ if __name__ == '__main__':
     store = FeatureStore(config=repo_config)
 
     # Teardown
+    print("Tearing down feature store")
     store.teardown()

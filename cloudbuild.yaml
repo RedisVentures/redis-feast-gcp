@@ -1,4 +1,15 @@
 steps:
-- name: 'python'
-  args: ['feature_store/create_feature_store.py']
+  # Install dependencies
+  - name: python
+    entrypoint: pip
+    args: ["install", "-r", "feature_store/requirements.txt", "--user"]
 
+  # Run unit tests
+  # - name: python
+  #   entrypoint: python
+  #   args: ["-m", "pytest", "--junitxml=${SHORT_SHA}_test_log.xml"]
+
+  # Apply the feature store registry changes
+  - name: python
+    entrypoint: python
+    args: ["feature_store/apply.py"]

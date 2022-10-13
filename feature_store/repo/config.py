@@ -1,4 +1,6 @@
 import os
+import pickle
+from google.cloud import storage
 
 
 PROJECT_ID = os.environ["PROJECT_ID"]
@@ -12,19 +14,22 @@ VACCINE_SEARCH_TRENDS_TABLE = os.getenv("VACCINE_SEARCH_TRENDS_TABLE", "vaccine_
 WEEKLY_VACCINATIONS_TABLE = os.getenv("WEEKLY_VACCINATIONS_TABLE", "us_weekly_vaccinations")
 
 
+def _get_blob():
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(REPO_CONFIG)
+    return blob
+
 def load_repo_config():
-    import pickle
-    from google.cloud import storage
-
-    def _get_blob():
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(BUCKET_NAME)
-        blob = bucket.blob(REPO_CONFIG)
-        return blob
-
     # Get the blob and download
     blob = _get_blob()
     pickle_in = blob.download_as_string()
     repo_config = pickle.loads(pickle_in)
     print("Repo configuration loaded from cloud storage")
     return repo_config
+
+def write_repo_config(repo_config):
+    # Get the blob and upload
+    blob = _get_blob()
+    pickle_out = pickle.dumps(repo_config)
+    blob.upload_from_string(pickle_out)

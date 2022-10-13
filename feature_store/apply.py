@@ -14,6 +14,7 @@ if __name__ == '__main__':
     store = FeatureStore(config=repo_config)
 
     # Apply
+    print("Applying feature store objects")
     store.apply([
         features.state,
         features.weekly_vaccinations_fv,
@@ -23,4 +24,5 @@ if __name__ == '__main__':
     ])
 
     # Materialize?
+    print("Materializing features")
     store.materialize_incremental(datetime.now())
