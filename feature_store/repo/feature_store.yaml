@@ -1,7 +1,0 @@
-project: feature_store
-registry: gs://gcp-feast-demo/data/registry.db
-provider: gcp
-online_store:
-  type: redis
-  connection_string: ${REDIS_CONNECTION_STRING:"0.0.0.0:6379"},password=${REDIS_PASSWORD:""}
-entity_key_serialization_version: 2
