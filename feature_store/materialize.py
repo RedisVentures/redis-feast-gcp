@@ -1,6 +1,4 @@
-import os
-import requests
-import pickle
+
 import pandas as pd
 import tempfile
 
@@ -10,20 +8,16 @@ from google.cloud import storage
 from feast import FeatureStore
 
 from repo import config
+from utils import file
 
 
-def _download_file(filename, url):
-    # NOTE the stream=True parameter below
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192): 
-                # If you have chunk encoded response uncomment if
-                # and set chunk_size parameter to None.
-                #if chunk:
-                f.write(chunk)
 
-def generate_vaccine_search_features(client: bigquery.Client, table_id: str):
+def generate_vaccine_search_features(
+    client: bigquery.Client,
+    table_id: str
+):
+    """
+    """
     job_config = bigquery.QueryJobConfig(
         destination=table_id,
         write_disposition='WRITE_TRUNCATE'
@@ -86,7 +80,6 @@ def generate_vaccine_search_features(client: bigquery.Client, table_id: str):
 
 def generate_vaccine_count_features(
     client: bigquery.Client,
-    storage_client: storage.Client,
     table_id: str
 ):
     """
@@ -97,12 +90,17 @@ def generate_vaccine_count_features(
         storage_client (storage.Client): GCP storage Client.
         table_id (str): Table ID for this feature set.
     """
+    # Generate temp dir
     tmpdir = tempfile.gettempdir()
     input_filename = f"{tmpdir}/us_state_vaccinations.csv"
     output_filename = f"{tmpdir}/us_weekly_vaccinations.csv"
     output_storage_filename = "data/us_weekly_vaccinations.csv"
-    file_url = "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/us_state_vaccinations.csv"
-    _download_file(input_filename, file_url)
+
+    # Download the CSV file from URL
+    file.download_url(
+        filename=input_filename,
+        url=config.DAILY_VACCINATIONS_CSV_URL
+    )
 
     print("Loading us_state_vaccinations.csv", flush=True)
     df = pd.read_csv(input_filename)[['date', 'location', 'daily_vaccinations']]
@@ -134,10 +132,13 @@ def generate_vaccine_count_features(
     print("Uploading CSV", flush=True)
     # Save back to tempfile
     df.to_csv(output_filename, index=False)
+
     # Upload to cloud storage
-    bucket = storage_client.bucket(config.BUCKET_NAME)
-    blob = bucket.blob(output_storage_filename)
-    blob.upload_from_filename(output_filename)
+    file.upload_to_gcs(
+        local_filename=output_filename,
+        remote_filename=output_storage_filename
+    )
+
     # Load bq job config
     job_config = bigquery.LoadJobConfig(
         schema=[
@@ -163,7 +164,12 @@ def generate_vaccine_count_features(
     load_job.result()
     print("Generated weekly vaccine count features.")
 
-def materialize_features(storage_client: storage.Client):
+def materialize_features():
+    """_summary_
+
+    Args:
+        storage_client (storage.Client): _description_
+    """
     # Load RepoConfig
     repo_config = config.load_repo_config()
     # Load FeatureStore from RepoConfig
@@ -173,11 +179,9 @@ def materialize_features(storage_client: storage.Client):
 
 def main(data, context):
     client = bigquery.Client()
-    storage_client = storage.Client()
     # Generate Vaccine Count Features
     generate_vaccine_count_features(
         client,
-        storage_client,
         f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.WEEKLY_VACCINATIONS_TABLE}"
     )
     # Generate Vaccine Search Features
@@ -186,4 +190,4 @@ def main(data, context):
         f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.VACCINE_SEARCH_TRENDS_TABLE}"
     )
     # Perform local materialization
-    materialize_features(storage_client)
+    materialize_features()

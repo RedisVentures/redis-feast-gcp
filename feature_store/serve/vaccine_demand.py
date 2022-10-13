@@ -1,7 +1,5 @@
-import pickle
-
-from repo import config
-from google.cloud import storage
+import pandas as pd
+from utils import DataFetcher
 from datetime import (
     datetime,
     timedelta
@@ -16,27 +14,17 @@ class VaccineDemand:
 
     def __init__(
         self,
+        model,
         repo_config: RepoConfig,
-        feature_service: str,
-        model_path: str,
         cols: list
     ):
         self._store = FeatureStore(config=repo_config)
-        self.serving_features = self._store.get_feature_service(feature_service)
+        self._data_fetcher = DataFetcher(self._store)
+        self._model = model
         self.cols = cols
-        self._read_model(str(model_path))
-
-    def _read_model(self, model_path: str):
-        # TODO - load model from cloud storage?
-        with open(str(model_path), "rb") as f:
-            self._model = pickle.load(f)
 
     def online_predict(self, state: str):
-        # Lookup from Redis
-        features = self._store.get_online_features(
-            features=self.serving_features,
-            entity_rows=[{"state": state}]
-        ).to_df()
+        features = self._data_fetcher.get_online_data(state=state)
         return self._predict(features[self.cols])
 
     def offline_predict(self, state: str):
