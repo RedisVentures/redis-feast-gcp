@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+  setup:
+    build:
+      context: ./
+      dockerfile: ./setup/Dockerfile
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/credentials.json
+    env_file:
+      - '.env'
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
+  jupyter:
+    image: jupyter/minimal-notebook:latest
+    container_name: jupyter
+    volumes:
+      - ./feature_store:/home/jovyan/feature_store
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
+    ports:
+      - 8888:8888
+    env_file:
+      - '.env'
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
+  train:
+    build:
+      context: ./
+      dockerfile: ./train/Dockerfile
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
+    env_file:
+      - '.env'
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
+  serve:
+    build:
+      context: ./
+      dockerfile: ./serve/Dockerfile
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
+    env_file:
+      - '.env'
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
+  teardown:
+    build:
+      context: ./
+      dockerfile: ./teardown/Dockerfile
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
+    env_file:
+      - '.env'
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"

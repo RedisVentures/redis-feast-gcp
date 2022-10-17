@@ -69,16 +69,16 @@ weekly_vaccinations_fv = FeatureView(
     entities=[state],
     ttl=timedelta(weeks=52 * 10),
     schema=[
-        Field(name="weekly_vaccinations_count", dtype=Int64, ),
         Field(name="lag_1_weekly_vaccinations_count", dtype=Int64),
-        Field(name="lag_2_weekly_vaccinations_count", dtype=Int64)
+        Field(name="lag_2_weekly_vaccinations_count", dtype=Int64),
+        Field(name="weekly_vaccinations_count", dtype=Int64)
     ],
     source=weekly_vaccinations_src,
 )
 
 
 serving_features = FeatureService(
-    name="serving_vaccine_features",
+    name="serving_features",
     features=[
         vaccine_search_trends_fv[[
             "lag_1_vaccine_interest",
@@ -96,7 +96,7 @@ serving_features = FeatureService(
 )
 
 training_features = FeatureService(
-    name="training_vaccine_features",
+    name="training_features",
     features=[
         vaccine_search_trends_fv,
         weekly_vaccinations_fv

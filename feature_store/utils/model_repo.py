@@ -1,5 +1,7 @@
 import pickle
-import redis.asyncio as redis
+import redis
+
+
 
 
 class ModelRepo:
@@ -9,8 +11,13 @@ class ModelRepo:
     latest_version = None
     model_name = None
 
-
-    def __init__(self, host: str, port: str, password: str):
+    def __init__(
+        self,
+        host: str,
+        port: str,
+        password: str,
+        model_name = str
+    ):
         """
         ModelRepo is a basic storage and versioning layer for ML models using
         Redis as the backend.
@@ -26,22 +33,23 @@ class ModelRepo:
             password=password,
             decode_responses=True
         )
-
-    async def setup(self, model_name: str):
-        """
-        Set up the model repository in Redis. Must call this first before using
-        the repo.
-
-        Args:
-            model_name (str): Name of the model we want to use/track.
-        """
         self.model_name = model_name
-        self.latest_version = await self.redis_client.hlen(self.model_versions)
+        self.latest_version = self.redis_client.hlen(self.model_versions())
+
+    @classmethod
+    def from_config(cls, config):
+        host, port = config.REDIS_CONNECTION_STRING.split(":")
+        return cls(
+            host=host,
+            port=port,
+            password=config.REDIS_PASSWORD,
+            model_name=config.MODEL_NAME
+        )
 
     def model_versions(self) -> str:
         return f"{self.model_prefix}:{self.model_name}:{self.versions}"
 
-    async def save_version(self, model) -> int:
+    def save_version(self, model) -> int:
         """
         Persist the model in the database and increment
         the version count.
@@ -54,8 +62,8 @@ class ModelRepo:
         """
         pickle_out = pickle.dumps(model)
         new_version = self.latest_version + 1
-        res = await self.redis_client.hset(
-            name=self.model_versions,
+        res = self.redis_client.hset(
+            name=self.model_versions(),
             key=str(new_version),
             value=pickle_out
         )
@@ -64,14 +72,14 @@ class ModelRepo:
             self.latest_version = new_version
             return self.latest_version
 
-    async def fetch_version(self, version: int):
+    def fetch_version(self, version: int):
         """
         Fetch model by version.
 
         Args:
             version (int): Model version number to fetch.
         """
-        res = await self.redis_client.hget(
+        res = self.redis_client.hget(
             name=self.model_versions(),
             key=str(version)
         )
@@ -79,22 +87,22 @@ class ModelRepo:
             pickle_out = pickle.loads(res)
             return pickle_out
 
-    async def fetch_all_versions(self) -> dict:
+    def fetch_all_versions(self) -> dict:
         """
         Fetch all model versions.
 
         Returns:
             dict: Dictionary of model_version : model object.
         """
-        res = await self.redis_client.hgetall(name=self.model_versions())
+        res = self.redis_client.hgetall(name=self.model_versions())
         if res:
             return {k: pickle.loads(v) for k, v in res.items()}
 
-    async def fetch_latest(self):
+    def fetch_latest(self):
         """
         Fetch the latest model version.
         """
-        res = await self.redis_client.hget(
+        res = self.redis_client.hget(
             name=self.model_versions(),
             key=str(self.latest_version)
         )

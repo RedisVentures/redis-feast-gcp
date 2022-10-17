@@ -1,17 +1,10 @@
 import pandas as pd
 
 from feast import FeatureStore
-
 from typing import Optional
-from repo.config import (
-    BIGQUERY_DATASET_NAME,
-    WEEKLY_VACCINATIONS_TABLE
-)
 
 
-class DataFetcher(object):
-    serving_features = "serving_vaccine_features"
-    training_features = "training_vaccine_features"
+class DataFetcher:
 
     def __init__(self, fs: FeatureStore):
         """
@@ -22,8 +15,8 @@ class DataFetcher(object):
             fs (FeatureStore): Feast FeatureStore object.
         """
         self._fs = fs
-        self.serving_feature_svc = self._fs.get_feature_service(self.serving_features)
-        self.training_feature_svc = self._fs.get_feature_service(self.training_features)
+        self.serving_feature_svc = self._fs.get_feature_service("serving_features")
+        self.training_feature_svc = self._fs.get_feature_service("training_features")
 
     def get_online_data(self, **entities) -> pd.DataFrame:
         """
@@ -44,11 +37,16 @@ class DataFetcher(object):
 
     def get_training_data(
         self,
-        entity_df: Optional[pd.DataFrame] = None
+        entity_df: Optional[pd.DataFrame] = None,
+        entity_query: Optional[str] = None
     ) -> pd.DataFrame:
         """
         Fetch point-in-time correct ML Features from the
         offline data source.
+
+        Args:
+            entity_df (pd.DataFrame, optional): DataFrame consisting of entities to include in training set. Default to None.
+            entity_query (str, optional): Query string to create entity df from offline data source. Default to None.
 
         Returns:
             pd.DataFrame: DataFrame consisting of historical training data.
@@ -59,17 +57,11 @@ class DataFetcher(object):
                     features=self.training_feature_svc,
                     entity_df=entity_df
                 ).to_df()
-            else:
+            if entity_query:
                 # Otherwise query the offline source of record
                 return self._fs.get_historical_features(
                     features=self.training_feature_svc,
-                    entity_df=f"""
-                        select
-                            state,
-                            date as event_timestamp
-                        from
-                            {BIGQUERY_DATASET_NAME}.{WEEKLY_VACCINATIONS_TABLE}
-                    """
+                    entity_df=entity_query
                 ).to_df()
         except Exception as why:
             print(why)

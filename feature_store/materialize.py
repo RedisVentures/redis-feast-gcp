@@ -4,12 +4,10 @@ import tempfile
 
 from datetime import datetime
 from google.cloud import bigquery
-from google.cloud import storage
 from feast import FeatureStore
 
 from repo import config
 from utils import file
-
 
 
 def generate_vaccine_search_features(
@@ -136,7 +134,8 @@ def generate_vaccine_count_features(
     # Upload to cloud storage
     file.upload_to_gcs(
         local_filename=output_filename,
-        remote_filename=output_storage_filename
+        remote_filename=output_storage_filename,
+        bucket_name=config.BUCKET_NAME
     )
 
     # Load bq job config
@@ -154,9 +153,8 @@ def generate_vaccine_count_features(
         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
     )
     # Start the job
-    uri = f"gs://{config.BUCKET_NAME}/{output_storage_filename}"
     load_job = client.load_table_from_uri(
-        uri,
+        f"gs://{config.BUCKET_NAME}/{output_storage_filename}",
         table_id,
         job_config=job_config
     )

@@ -1,3 +1,7 @@
+redis
+xgboost
+numpy
+scikit-learn
 pandas
 feast[gcp, redis]
 google-cloud-bigquery
