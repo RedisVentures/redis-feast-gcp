@@ -1,16 +1,22 @@
 from feast import RepoConfig
 from google.cloud import bigquery
-
-from repo import config
-from utils import file
-from materialize import (
+from feature_store.repo import config
+from feature_store.utils import (
+    file,
+    logger
+)
+from feature_store.materialize import (
     generate_vaccine_count_features,
     generate_vaccine_search_features
 )
 
 
 if __name__ == "__main__":
+    # Setup logger
+    logging = logger.get_logger()
+
     # Create a feature store repo config
+    logging.info("Creating Feast repo configuration")
     repo_config = RepoConfig(
         project=config.FEAST_PROJECT,
         # Cloud Storage Blob for the Registry
@@ -26,19 +32,21 @@ if __name__ == "__main__":
     )
 
     # Host the config in cloud storage
+    logging.info("Uploading repo config to cloud storage bucket")
     file.upload_pkl_to_gcs(repo_config, config.BUCKET_NAME, config.REPO_CONFIG)
 
-    # GCP BigQuery client
+    # Generate initial features data in offline store
+    logging.info("Generating initial vaccine features in GCP")
     client = bigquery.Client()
 
-    # Generate Weekly Vaccine Count Features
     generate_vaccine_count_features(
         client,
         f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.WEEKLY_VACCINATIONS_TABLE}"
     )
 
-    # Generate Vaccine Search Features
     generate_vaccine_search_features(
         client,
         f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.VACCINE_SEARCH_TRENDS_TABLE}"
     )
+
+    logging.info("Done")

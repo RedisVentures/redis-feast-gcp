@@ -7,7 +7,14 @@ from google.cloud import bigquery
 from feast import FeatureStore
 
 from repo import config
-from utils import file
+from utils import (
+    file,
+    logger
+)
+
+
+# Setup logger
+logging = logger.get_logger()
 
 
 def generate_vaccine_search_features(
@@ -15,6 +22,12 @@ def generate_vaccine_search_features(
     table_id: str
 ):
     """
+    Generate and upload weekly vaccine search trends features derived from a public
+    Google dataset stored in BigQuery.
+
+    Args:
+        client (bigquery.Client): GCP bigquery Client.
+        table_id (str): Table ID for this feature set.
     """
     job_config = bigquery.QueryJobConfig(
         destination=table_id,
@@ -74,7 +87,7 @@ def generate_vaccine_search_features(
     """
     query_job = client.query(sql, job_config=job_config)
     query_job.result()
-    print("Generated weekly vaccine search trends features.")
+    logging.info("Generated weekly vaccine search trends features")
 
 def generate_vaccine_count_features(
     client: bigquery.Client,
@@ -100,34 +113,34 @@ def generate_vaccine_count_features(
         url=config.DAILY_VACCINATIONS_CSV_URL
     )
 
-    print("Loading us_state_vaccinations.csv", flush=True)
+    logging.info("Loading us_state_vaccinations.csv")
     df = pd.read_csv(input_filename)[['date', 'location', 'daily_vaccinations']]
-    print(len(df), "loaded daily vaccination records", flush=True)
+    logging.info(f"Loaded {len(df)} daily vaccination records")
 
-    print("Cleaning dataset", flush=True)
+    logging.info("Cleaning dataset")
     df['date'] = df['date'].astype('datetime64[ns]')
 
-    print("Truncating records and filling NaNs", flush=True)
+    logging.info("Truncating records and filling NaNs")
     df = df[(~df.location.isin(['United States', 'Long Term Care'])) & (df.date >= '2021-1-1')].fillna(0)
-    print(len(df), "daily records remaining", flush=True)
+    logging.info(f"{len(df)} daily records remaining")
 
-    print("Rolling up counts into weeks starting on Mondays", flush=True)
+    logging.info("Rolling up counts into weeks starting on Mondays")
     df = df.groupby([pd.Grouper(freq='W-Mon', key='date'), 'location'])['daily_vaccinations'].sum().reset_index()
     df.rename(columns={'daily_vaccinations': 'lag_1_weekly_vaccinations_count', 'location': 'state'}, inplace=True)
-    print(len(df), "weekly vaccine count records for", len(df.state.value_counts()), "total states & territories", flush=True)
+    logging.info(f"{len(df)} weekly vaccine count records for {len(df.state.value_counts())} total states & territories")
 
-    print("Creating lagged features", flush=True)
+    logging.info("Creating lagged features")
     df['weekly_vaccinations_count'] = df.groupby('state').lag_1_weekly_vaccinations_count.shift(periods=-1)
     df['lag_2_weekly_vaccinations_count'] = df.groupby('state').lag_1_weekly_vaccinations_count.shift(periods=1)
     df.sort_values(['date', 'state'], inplace=True)
 
-    print("Saving dataframe...", flush=True)
+    logging.info("Saving dataframe...")
     df['weekly_vaccinations_count'] = df['weekly_vaccinations_count'].astype('Int64', errors='ignore')
     df['lag_1_weekly_vaccinations_count'] = df['lag_1_weekly_vaccinations_count'].astype('Int64', errors='ignore')
     df['lag_2_weekly_vaccinations_count'] = df['lag_2_weekly_vaccinations_count'].astype('Int64', errors='ignore')
     df['date'] = df['date'].dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    print("Uploading CSV", flush=True)
+    logging.info("Uploading CSV")
     # Save back to tempfile
     df.to_csv(output_filename, index=False)
 
@@ -153,6 +166,7 @@ def generate_vaccine_count_features(
         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
     )
     # Start the job
+    logging.info("Running query")
     load_job = client.load_table_from_uri(
         f"gs://{config.BUCKET_NAME}/{output_storage_filename}",
         table_id,
@@ -160,23 +174,26 @@ def generate_vaccine_count_features(
     )
     # Wait for job to complete
     load_job.result()
-    print("Generated weekly vaccine count features.")
+    logging.info("Generated weekly vaccine count features")
 
 def materialize_features():
-    """_summary_
-
-    Args:
-        storage_client (storage.Client): _description_
+    """
+    Incrementially materizlie ML features from offline store to online store
+    using Feast.
     """
     # Load RepoConfig
     repo_config = config.load_repo_config()
+
     # Load FeatureStore from RepoConfig
     store = FeatureStore(config=repo_config)
+
     # Materialize Features to Redis
+    logging.info("Beginning materialization")
     store.materialize_incremental(end_date=datetime.now())
 
 def main(data, context):
     client = bigquery.Client()
+
     # Generate Vaccine Count Features
     generate_vaccine_count_features(
         client,

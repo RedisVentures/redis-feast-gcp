@@ -1,25 +1,30 @@
 from datetime import datetime
 from feast import FeatureStore
-from repo import (
+from feature_store.repo import (
     config,
     features
 )
-from utils import file
+from feature_store.utils import (
+    file,
+    logger
+)
 
 
 if __name__ == '__main__':
-
-    # Fetch repo config from storage
-    repo_config = file.fetch_pkl_frm_gcs(
-        remote_filename=config.REPO_CONFIG,
-        bucket_name=config.BUCKET_NAME
-    )
+    # Setup logger
+    logging = logger.get_logger()
 
     # Create FeatureStore
-    store = FeatureStore(config=repo_config)
+    logging.info("Fetching repo config from cloud storage")
+    store = FeatureStore(
+        config=file.fetch_pkl_frm_gcs(
+            remote_filename=config.REPO_CONFIG,
+            bucket_name=config.BUCKET_NAME
+        )
+    )
 
     # Apply
-    print("Applying feature store objects")
+    logging.info("Applying feature store objects")
     store.apply([
         features.state,
         features.weekly_vaccinations_fv,
@@ -29,5 +34,7 @@ if __name__ == '__main__':
     ])
 
     # Materialize?
-    print("Materializing features")
+    logging.info("Materializing features")
     store.materialize_incremental(datetime.now())
+
+    logging.info("Done")

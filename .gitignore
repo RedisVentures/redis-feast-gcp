@@ -3,3 +3,4 @@
 *.pkl
 *.csv
 *.egg-info
+.env

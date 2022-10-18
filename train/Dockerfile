@@ -13,7 +13,5 @@ RUN pip install -e .
 WORKDIR /app/train
 RUN pip install -r requirements.txt
 
-RUN env
-
 WORKDIR /app
 CMD ["python", "train/main.py"]

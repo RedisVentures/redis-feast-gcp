@@ -2,8 +2,6 @@ import pickle
 import redis
 
 
-
-
 class ModelRepo:
     model_prefix = "model"
     versions = "versions"
