@@ -34,5 +34,5 @@ gcloud scheduler jobs create pubsub feast-daily-job \
 
 # Create & Apply the Feature Store
 echo "\nCreating FEAST Feature Store"
-python create.py
-python apply.py
+python setup/create.py
+python setup/apply.py

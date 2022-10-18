@@ -11,4 +11,4 @@ gcloud scheduler jobs delete feast-daily-job \
 
 # Teardown Feast
 echo "Tearing down Feast infrastructure"
-python teardown.py
+python teardown/teardown.py

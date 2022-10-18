@@ -1,14 +1,7 @@
-FROM python:3.8-slim-buster
-
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-
-RUN python3 -m pip install --upgrade pip setuptools wheel
+FROM redisventures/gcp-feast:1.0.0
 
 WORKDIR /app
-COPY . ./
-
-RUN pip install -e .
+COPY ./train ./train/
 
 WORKDIR /app/train
 RUN pip install -r requirements.txt
