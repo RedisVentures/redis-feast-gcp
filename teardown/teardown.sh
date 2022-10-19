@@ -1,3 +1,8 @@
+# Auth
+gcloud auth activate-service-account $SERVICE_ACCOUNT_EMAIL \
+    --key-file=$GOOGLE_APPLICATION_CREDENTIALS \
+    --project=$PROJECT_ID
+
 # Cleanup BigQuery
 bq rm -t -f $BIGQUERY_DATASET_NAME'.'$WEEKLY_VACCINATIONS_TABLE
 bq rm -t -f $BIGQUERY_DATASET_NAME'.'$VACCINE_SEARCH_TRENDS_TABLE

@@ -1,6 +1,10 @@
+# Auth
+gcloud auth activate-service-account $SERVICE_ACCOUNT_EMAIL \
+    --key-file=$GOOGLE_APPLICATION_CREDENTIALS \
+    --project=$PROJECT_ID
+
+
 # Setup GCP Project Name
-gcloud config set project $PROJECT_ID
-export GOOGLE_CLOUD_PROJECT=$PROJECT_ID
 echo project_id = $PROJECT_ID > ~/.bigqueryrc
 
 # Create Cloud Storage Bucket
@@ -13,7 +17,7 @@ bq --location=us mk --dataset $PROJECT_ID:gcp_feast_demo
 # Deploy cloud Function
 echo "Creating cloud function for materialization"
 gcloud functions deploy feast-update-features \
-    --source=$(pwd) \
+    --source=./ \
     --entry-point=main \
     --memory=1024MB \
     --allow-unauthenticated \

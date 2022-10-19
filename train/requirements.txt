@@ -1,8 +1,2 @@
-redis
-xgboost
-numpy
-scikit-learn
-pandas
-feast[gcp, redis]
-google-cloud-bigquery
-google-cloud-storage
+xgboost==1.6.2
+scikit-learn==1.1.2

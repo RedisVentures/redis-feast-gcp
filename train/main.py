@@ -1,11 +1,9 @@
 
 
-import logging
 import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 
-from feast import FeatureStore
 from datetime import timedelta
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import OrdinalEncoder
@@ -21,18 +19,13 @@ from feature_store.repo import config
 from feature_store.utils import (
     ModelRepo,
     DataFetcher,
-    file
+    logger,
+    storage
 )
+
 
 # Setup logger
-logging.basicConfig(
-    filename="info.log",
-    level=logging.INFO,
-    format="%(asctime)s:%(levelname)7s:%(filename)25s"
-    ":%(lineno)3s %(funcName)30s(): %(message)s",
-)
-logging.getLogger().addHandler(logging.StreamHandler())
-
+logging = logger.get_logger()
 
 def train_test_split(
     data: pd.DataFrame,
@@ -165,12 +158,13 @@ def train(data_fetcher: DataFetcher):
 def main():
     # Init feature store and data fetcher
     logging.info("Loading feature store and data fetcher")
-    repo_config = file.fetch_pkl_frm_gcs(
-        remote_filename=config.REPO_CONFIG,
+   # Create FeatureStore
+    logging.info("Fetching feature store")
+    store = storage.get_feature_store(
+        config_path=config.REPO_CONFIG,
         bucket_name=config.BUCKET_NAME
     )
-    fs = FeatureStore(config=repo_config)
-    data_fetcher = DataFetcher(fs)
+    data_fetcher = DataFetcher(store)
 
     # Train
     model = train(data_fetcher)

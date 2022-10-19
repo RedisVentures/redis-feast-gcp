@@ -3,8 +3,11 @@ FROM redisventures/gcp-feast:1.0.0
 WORKDIR /app
 COPY ./teardown ./teardown/
 
-WORKDIR /app/teardown
-RUN pip install -r requirements.txt
+RUN apt-get update && \
+    apt-get install -y curl
 
-WORKDIR /app
+ENV CLOUDSDK_INSTALL_DIR="/usr/local/gcloud/"
+RUN curl -sSL https://sdk.cloud.google.com | bash
+ENV PATH="/usr/local/gcloud/google-cloud-sdk/bin:$PATH"
+
 CMD ./teardown/teardown.sh

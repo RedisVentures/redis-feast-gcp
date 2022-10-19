@@ -1,11 +1,30 @@
 import requests
 import pickle
 
+from feast import FeatureStore
 from google.cloud import storage
 from typing import Any
 
 
-def get_gcs_blob(
+def get_feature_store(
+    config_path: str,
+    bucket_name: str
+) -> FeatureStore:
+    """
+    Fetch the Feast Feature Store using the repo config stored
+    in GCS.
+
+    Returns:
+        FeatureStore: Feast FeatureStore
+    """
+    return FeatureStore(
+        config = fetch_pkl(
+            remote_filename=config_path,
+            bucket_name=bucket_name
+        )
+    )
+
+def get_blob(
     remote_filename: str,
     bucket_name: str
 ):
@@ -22,7 +41,7 @@ def get_gcs_blob(
     return blob
 
 
-def upload_to_gcs(
+def upload_file(
     local_filename: str,
     bucket_name: str,
     remote_filename: str
@@ -35,10 +54,10 @@ def upload_to_gcs(
         bucket_name (str): Name of the GCS bucket.
         remote_filename (str): Path to the remote file within the GCS bucket.
     """
-    blob = get_gcs_blob(remote_filename, bucket_name)
+    blob = get_blob(remote_filename, bucket_name)
     blob.upload_from_filename(local_filename)
 
-def upload_pkl_to_gcs(
+def upload_pkl(
     obj: Any,
     bucket_name: str,
     remote_filename: str,
@@ -51,11 +70,11 @@ def upload_pkl_to_gcs(
         bucket_name (str): Name of the GCS bucket.
         remote_filename (str): Path to the remote file within the GCS bucket.
     """
-    blob = get_gcs_blob(remote_filename, bucket_name)
+    blob = get_blob(remote_filename, bucket_name)
     pickle_out = pickle.dumps(obj)
     blob.upload_from_string(pickle_out)
 
-def fetch_pkl_frm_gcs(
+def fetch_pkl(
     bucket_name: str,
     remote_filename: str
 ) -> Any:
@@ -70,13 +89,13 @@ def fetch_pkl_frm_gcs(
         Any: Some object.
     """
     # Get the blob and download
-    blob = get_gcs_blob(remote_filename, bucket_name)
+    blob = get_blob(remote_filename, bucket_name)
     pickle_in = blob.download_as_string()
     obj = pickle.loads(pickle_in)
     return obj
 
 
-def download_url(
+def download_file_url(
     filename: str,
     url: str
 ):

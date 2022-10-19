@@ -7,7 +7,8 @@ RUN python3 -m pip install --upgrade pip setuptools wheel
 
 WORKDIR /app
 
-COPY setup* ./
+COPY setup.py ./
+COPY setup.cfg ./
 COPY ./feature_store ./feature_store/
 
 RUN pip install -e .

@@ -1,3 +1,0 @@
-feast[gcp, redis]
-google-cloud-bigquery
-google-cloud-storage

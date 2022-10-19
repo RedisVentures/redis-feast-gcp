@@ -1,13 +1,12 @@
 from feast import RepoConfig
 from google.cloud import bigquery
-from feature_store.repo import config
 from feature_store.utils import (
-    file,
-    logger
+    logger,
+    storage
 )
-from feature_store.materialize import (
-    generate_vaccine_count_features,
-    generate_vaccine_search_features
+from feature_store.repo import (
+    config,
+    features
 )
 
 
@@ -33,18 +32,20 @@ if __name__ == "__main__":
 
     # Host the config in cloud storage
     logging.info("Uploading repo config to cloud storage bucket")
-    file.upload_pkl_to_gcs(repo_config, config.BUCKET_NAME, config.REPO_CONFIG)
+    storage.upload_pkl(repo_config, config.BUCKET_NAME, config.REPO_CONFIG)
 
     # Generate initial features data in offline store
     logging.info("Generating initial vaccine features in GCP")
     client = bigquery.Client()
 
-    generate_vaccine_count_features(
+    features.generate_vaccine_counts(
+        logging,
         client,
         f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.WEEKLY_VACCINATIONS_TABLE}"
     )
 
-    generate_vaccine_search_features(
+    features.generate_vaccine_search_trends(
+        logging,
         client,
         f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.VACCINE_SEARCH_TRENDS_TABLE}"
     )

@@ -1,12 +1,11 @@
 from datetime import datetime
-from feast import FeatureStore
 from feature_store.repo import (
     config,
     features
 )
 from feature_store.utils import (
-    file,
-    logger
+    logger,
+    storage
 )
 
 
@@ -15,12 +14,10 @@ if __name__ == '__main__':
     logging = logger.get_logger()
 
     # Create FeatureStore
-    logging.info("Fetching repo config from cloud storage")
-    store = FeatureStore(
-        config=file.fetch_pkl_frm_gcs(
-            remote_filename=config.REPO_CONFIG,
-            bucket_name=config.BUCKET_NAME
-        )
+    logging.info("Fetching feature store")
+    store = storage.get_feature_store(
+        config_path=config.REPO_CONFIG,
+        bucket_name=config.BUCKET_NAME
     )
 
     # Apply

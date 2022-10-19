@@ -1,4 +1,4 @@
 pandas
-feast[gcp, redis]
+feast[gcp, redis]==0.26.0
 google-cloud-bigquery
 google-cloud-storage

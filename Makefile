@@ -24,13 +24,22 @@ env:
 	@touch .env
 	@./env.sh
 
-# help: builds                - Build required docker images
-.PHONY: builds
-builds:
-	@./build.sh
+# help: docker                - Build required docker images
+.PHONY: docker
+docker:
+	@docker build -t redisventures/gcp-feast:1.0.0 .
+	@docker compose buildls
 
 
+# help: setup                 - Setup GCP Infra and Feast feature store
+.PHONY: setup
+setup:
+	@docker compose run setup
 
+# help: train                 - Train Vaccine Demand Model
+.PHONY: train
+train:
+	@docker compose run train
 
 # help:
 # help:

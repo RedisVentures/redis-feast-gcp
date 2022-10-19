@@ -6,10 +6,11 @@ services:
       context: ./
       dockerfile: ./setup/Dockerfile
     volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/credentials.json
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
     env_file:
       - '.env'
     environment:
+      PATH: "${PATH}:/usr/local/gcloud/google-cloud-sdk/bin"
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
   jupyter:
     image: jupyter/minimal-notebook:latest
