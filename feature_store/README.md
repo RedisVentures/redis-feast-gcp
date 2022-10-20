@@ -3,9 +3,6 @@ A quick view of what's in this package:
 
 * [`repo/`](repo/) contains Feast feature definitions and configuration.
 * [`utils/`](utils/) contains helper utilities and functions that can be used throughout.
-* [`feature_store_setup.ipynb`](feature_store_setup.ipynb) a Jupyter notebook for working with Feast and the newly configured GCP infra.
-
-
 
 TBD -- Need to fill this out a good bit.
 

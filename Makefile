@@ -22,13 +22,18 @@ help:
 env:
 	@rm -rf .env
 	@touch .env
-	@./env.sh
+	@while read p; do \
+		echo $p \
+		read -u 1 input \
+		echo $p$input >> .env \
+	done <.env.template
+
 
 # help: docker                - Build required docker images
 .PHONY: docker
 docker:
-	@docker build -t redisventures/gcp-feast:1.0.0 .
-	@docker compose buildls
+	# @docker build --platform=linux/amd64 -t redisventures/gcp-feast:1.0.0 .
+	@docker compose build
 
 
 # help: setup                 - Setup GCP Infra and Feast feature store
@@ -36,10 +41,29 @@ docker:
 setup:
 	@docker compose run setup
 
-# help: train                 - Train Vaccine Demand Model
+
+# help: train                 - Train Vaccine Demand model
 .PHONY: train
 train:
 	@docker compose run train
+
+
+# help: jupyter               - Spin up a jupyter notebook to explore dataset and model
+.PHONY: jupyter
+jupyter:
+	@docker compose run --service-ports jupyter
+
+
+# help: serve                 - Serve Vaccine Demand model
+.PHONY: serve
+serve:
+	@docker compose run --service-ports serve
+
+
+# help: serve                 - Teardown GCP infra and Feast
+.PHONY: teardown
+teardown:
+	@docker compose run teardown
 
 # help:
 # help:

@@ -28,8 +28,7 @@ class ModelRepo:
         self.redis_client = redis.Redis(
             host=host,
             port=port,
-            password=password,
-            decode_responses=True
+            password=password
         )
         self.model_name = model_name
         self.latest_version = self.redis_client.hlen(self.model_versions())
@@ -77,6 +76,7 @@ class ModelRepo:
         Args:
             version (int): Model version number to fetch.
         """
+        print(version, flush=True)
         res = self.redis_client.hget(
             name=self.model_versions(),
             key=str(version)

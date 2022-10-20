@@ -81,7 +81,7 @@ We will provision GCP infrastructure from your localhost. So, we need to handle 
 
     >BUCKET_NAME={your-gcp-bucket-name}
 
-    
+
 
 #### Build
 Assuming all above steps are done, build the docker images required to run the different apps.
@@ -99,25 +99,25 @@ Provision GCP infrastructure, generate datasets, and create the Feast Feature St
 ```bash
 $ make setup
 ```
-At the completion of this container, the majority of the architecture above will be deployed in your GCP.
+At the completion of this step, the majority of the architecture above will be deployed in your GCP.
 ___
 
 ### Other Components
-Now that the Feature Store is in place, utilize the following add-on apps to perform different tasks.
+Now that the Feature Store is in place, utilize the following add-on apps to perform different tasks as desired.
 
 #### Jupyter
 Run a Jupyter notebook to perform exploratory data analysis and interact with the
 Feature Store using the [Feast SDK](https://rtd.feast.dev/en/master/).
 
 ```bash
-$ docker compose run jupyter
+$ make jupyter
 ```
 #### Train
 Train a vaccine demand forecast model using [XGBoost](https://xgboost.readthedocs.io/en/stable/) and ML features
 pulled from **BigQuery** using **Feast**. The model is versioned, pickled, and stored in Redis for access from other apps.
 
 ```bash
-$ docker compose run train
+$ make train
 ```
 
 >Training can take place locally (for the demo) or in the cloud through a managed service offering, or as a Kubernetes (GKE) job. There is flexibility here, which is why we built a container.
@@ -126,7 +126,7 @@ $ docker compose run train
 Expose the vaccine demand forecast model for inference with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) and [Fast API](https://fastapi.tiangolo.com/). Online feature are pulled from **Redis** using **Feast**.
 
 ```bash
-$ docker compose run serve
+$ make serve
 ```
 
 >Serving can take place locally (for the demo) or in the cloud through a managed service offering, or in Kubernetes (GKE + Kuberay). There is flexibility here, which is why we built a container.
@@ -135,7 +135,7 @@ $ docker compose run serve
 Cleanup GCP infrastructure and teardown Feature Store.
 
 ```bash
-$ docker compose run teardown
+$ make teardown
 ```
 
 ___

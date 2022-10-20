@@ -30,7 +30,6 @@ class DataFetcher:
                 features=self.serving_feature_svc,
                 entity_rows=[entities]
             ).to_df()
-            assert not features.isnull().sum(axis=0)
             return features
         except Exception as why:
             print(why)

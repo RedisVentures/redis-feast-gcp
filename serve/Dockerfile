@@ -1,12 +1,10 @@
-FROM rayproject/ray-ml:latest
+FROM redisventures/gcp-feast:1.0.0
 
 WORKDIR /app
-
 COPY ./serve ./serve/
-COPY setup.py ./
-COPY setup.cfg ./
-COPY ./feature_store ./feature_store/
 
-RUN pip install -e .
+WORKDIR /app/serve
+RUN pip install -r requirements.txt
 
+WORKDIR /app
 CMD ["python", "serve/main.py"]
