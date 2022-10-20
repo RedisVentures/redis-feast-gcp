@@ -44,17 +44,17 @@ def predict(request: PredictionRequest):
     features = data_fetcher.get_online_data(state=request.state)
     return _predict(features)
 
-@app.get("/predict/offline")
-def predict_offline(request: PredictionRequest):
-    logging.info(f"Predicting vaccine demand for {request.state} with offline data")
-    features = data_fetcher.get_training_data(
-        entity_df=pd.DataFrame.from_dict(
-        {
-            "state": [request.state],
-            "event_timestamp": [datetime.now() - timedelta(days=2)]
-        }
-    ))
-    return _predict(features)
+# @app.get("/predict/offline")
+# def predict_offline(request: PredictionRequest):
+#     logging.info(f"Predicting vaccine demand for {request.state} with offline data")
+#     features = data_fetcher.get_training_data(
+#         entity_df=pd.DataFrame.from_dict(
+#         {
+#             "state": [request.state],
+#             "event_timestamp": [datetime.now() - timedelta(days=2)]
+#         }
+#     ))
+#     return _predict(features)
 
 def _predict(features: pd.DataFrame):
     """
@@ -63,7 +63,6 @@ def _predict(features: pd.DataFrame):
     Args:
         features (pd.DataFrame): DataFrame of ML features pulled from the feature store.
     """
-    print(features, flush=True)
     res = model.predict(features)
     return {"result": int(res[0])}
 

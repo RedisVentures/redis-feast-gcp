@@ -81,6 +81,7 @@ We will provision GCP infrastructure from your localhost. So, we need to handle 
 
     >BUCKET_NAME={your-gcp-bucket-name}
 
+    >SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
 
 
 #### Build

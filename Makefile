@@ -20,13 +20,10 @@ help:
 # help: env                   - Create an ENV file for secrets and credentials
 .PHONY: env
 env:
+	@echo "Generate ENV file"
 	@rm -rf .env
 	@touch .env
-	@while read p; do \
-		echo $p \
-		read -u 1 input \
-		echo $p$input >> .env \
-	done <.env.template
+	@./env.sh
 
 
 # help: docker                - Build required docker images
