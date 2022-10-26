@@ -29,7 +29,7 @@ env:
 # help: docker                - Build required docker images
 .PHONY: docker
 docker:
-	# @docker build --platform=linux/amd64 -t redisventures/gcp-feast:1.0.0 .
+	@docker build --platform=linux/amd64 -t redisventures/gcp-feast:1.0.0 .
 	@docker compose build
 
 
@@ -57,7 +57,7 @@ serve:
 	@docker compose run --service-ports serve
 
 
-# help: serve                 - Teardown GCP infra and Feast
+# help: teardown              - Teardown GCP infra and Feast
 .PHONY: teardown
 teardown:
 	@docker compose run teardown

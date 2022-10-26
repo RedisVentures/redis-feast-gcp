@@ -46,14 +46,23 @@ The demo contains several smaller apps organized by Docker Compose. Below we wil
 Install Docker on your machine. [Docker Desktop](https://www.docker.com/products/docker-desktop/) is best, thanks to it's ease of use, in our opinion.
 
 #### ☁️ GCP
-In order to run this in Google Cloud, you will need a GCP project. If you don't have on [create a new GCP project](https://console.cloud.google.com/cloud-resource-manager) from scratch. [Make sure that billing is enabled for your project.](https://cloud.google.com/billing/docs/how-to/modify-project)
 
+#### GCP Account Setup
 
-1. Enable the following GCP APIs:
+In order to run this in Google Cloud, you will need a GCP project. The steps are
+
+1. If you don't have one [create a new GCP project](https://console.cloud.google.com/cloud-resource-manager)
+2. [Make sure that billing is enabled for your project.](https://cloud.google.com/billing/docs/how-to/modify-project)
+3. Enable the following GCP APIs:
     1. [Cloud Scheduler](https://console.cloud.google.com/apis/library/cloudscheduler.googleapis.com?q=cloud&id=1d54d828-14ed-4976-959b-3b18cca9e859)
     2. [Cloud Build](https://console.cloud.google.com/apis/library/cloudbuild.googleapis.com?q=cloud&id=9472915e-c82c-4bef-8a6a-34c81e5aebcc)
     3. [Cloud Functions](https://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com?q=cloud%20functions&id=2174da14-0e34-49ed-9267-e258674e95da)
-2. Acquire a GCP service account credential file and download to your machine, somewhere safe.
+4. Acquire a GCP service account credential file and download to your machine, somewhere safe.
+    - IAM -> Service Account -> Create service account
+5. Create a new key for that service account.
+    - In Service account, go to "keys" pane and create new key.
+    - Download locally and remember the file path
+
 
 #### Redis
 You have a few options here. Top two recommended options:
@@ -75,7 +84,7 @@ We will provision GCP infrastructure from your localhost. So, we need to handle 
 
     >GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
 
-    >PROJECT_ID={gcp-project-id}
+    >PROJECT_ID={gcp-project-id} (project-id not project-number)
 
     >GCP_REGION={preferred-gcp-region}
 
@@ -92,7 +101,15 @@ Assuming all above steps are done, build the docker images required to run the d
     $ make docker
     ```
 
+You may need to disable docker buildkit for Mac machines
+
+```bash
+export DOCKER_BUILDKIT=0
+```
+
 The script will build a [base docker image](./Dockerfile) and then build individiual images for each app: [`setup`](setup/), [`train`](train/), [`serve`](serve/), [`jupyter`](jupyter/), and [`teardown`](teardown/).
+
+This will take some time, ~5-10min, so grab a cup of coffee.
 
 ### Feature Store Setup
 
