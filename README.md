@@ -53,15 +53,23 @@ In order to run this in Google Cloud, you will need a GCP project. The steps are
 
 1. If you don't have one [create a new GCP project](https://console.cloud.google.com/cloud-resource-manager)
 2. [Make sure that billing is enabled for your project.](https://cloud.google.com/billing/docs/how-to/modify-project)
+
 3. Enable the following GCP APIs:
     1. [Cloud Scheduler](https://console.cloud.google.com/apis/library/cloudscheduler.googleapis.com?q=cloud&id=1d54d828-14ed-4976-959b-3b18cca9e859)
     2. [Cloud Build](https://console.cloud.google.com/apis/library/cloudbuild.googleapis.com?q=cloud&id=9472915e-c82c-4bef-8a6a-34c81e5aebcc)
     3. [Cloud Functions](https://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com?q=cloud%20functions&id=2174da14-0e34-49ed-9267-e258674e95da)
+
+    - <img src="https://user-images.githubusercontent.com/13009163/198134507-a22ecc60-6e87-43ac-8f33-e685215a363e.png" width="30%"><img>
+    - You should see the following notifications
+    - <img src="https://user-images.githubusercontent.com/13009163/198134908-6b102849-dd73-4e77-9b04-1ef9d38b3307.png" width="30%"><img>
+
 4. Acquire a GCP service account credential file and download to your machine, somewhere safe.
     - IAM -> Service Account -> Create service account
+
 5. Create a new key for that service account.
     - In Service account, go to "keys" pane and create new key.
     - Download locally and remember the file path
+    - <img src="https://user-images.githubusercontent.com/13009163/198135033-a16b7ada-5c7c-4a56-bb74-ee038b5076cb.png" width="30%"><img>
 
 
 #### Redis
