@@ -5,9 +5,9 @@
 ___
 
 ## Demo ML Application
-To demonstrate the power of a Feature Store, we include a demo machine learning application that **predicts the count of next week's administered vaccine doses** (by state).
+To demonstrate the power of a Feature Store, we include a demo machine learning application that **predicts the count of next week's administered COVID-19 vaccine doses** (by US state).
 
-The Feature Store fuses together weekly [google search trends data]() along with lagging [vaccine dose counts]().
+The Feature Store fuses together weekly [google search trends data](https://console.cloud.google.com/marketplace/product/bigquery-public-datasets/covid19-vaccination-search-insights) along with lagging [vaccine dose counts](https://github.com/owid/covid-19-data).
 
 >*Both datasets are open source and provided free to the public!*
 
@@ -59,27 +59,28 @@ In order to run this in Google Cloud, you will need a GCP project. The steps are
     2. [Cloud Build](https://console.cloud.google.com/apis/library/cloudbuild.googleapis.com?q=cloud&id=9472915e-c82c-4bef-8a6a-34c81e5aebcc)
     3. [Cloud Functions](https://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com?q=cloud%20functions&id=2174da14-0e34-49ed-9267-e258674e95da)
 
-    - <img src="https://user-images.githubusercontent.com/13009163/198134507-a22ecc60-6e87-43ac-8f33-e685215a363e.png" width="30%"><img>
-    - You should see the following notifications
-    - <img src="https://user-images.githubusercontent.com/13009163/198134908-6b102849-dd73-4e77-9b04-1ef9d38b3307.png" width="30%"><img>
+        <img src="https://user-images.githubusercontent.com/13009163/198134507-a22ecc60-6e87-43ac-8f33-e685215a363e.png" width="30%"><img>
+
+    4. You should see the following notifications:
+
+        <img src="https://user-images.githubusercontent.com/13009163/198134908-6b102849-dd73-4e77-9b04-1ef9d38b3307.png" width="30%"><img>
+
 
 4. Acquire a GCP service account credential file and download to your machine, somewhere safe.
     - IAM -> Service Account -> Create service account
 
 5. Create a new key for that service account.
     - In Service account, go to "keys" pane and create new key.
-    - Download locally and remember the file path
-    - <img src="https://user-images.githubusercontent.com/13009163/198135033-a16b7ada-5c7c-4a56-bb74-ee038b5076cb.png" width="30%"><img>
+    - Download locally and remember the file path:
+
+        <img src="https://user-images.githubusercontent.com/13009163/198135033-a16b7ada-5c7c-4a56-bb74-ee038b5076cb.png" width="30%"><img>
 
 
-#### Redis
-You have a few options here. Top two recommended options:
-
-1. Setup a [Redis Cloud instance](https://app.redislabs.com/). (There's a 30Mb Free Tier)
-2. Pull and use a separate [Redis docker image](https://hub.docker.com/_/redis).
+#### Redis Cloud
+Setup a [Redis Cloud instance](https://app.redislabs.com/) and record the public endpoint `{host}:{port}` and password. **There's a 30Mb Free Tier** which will be perfect for this demo.
 
 #### Environment
-We will provision GCP infrastructure from your localhost. So, we need to handle local environment variables, thankfully all handled by Docker and a `.env` file.
+This demo provisions GCP infrastructure from your localhost. So, we need to handle local environment variables, thankfully all handled by Docker and a `.env` file.
 
 
 1. Make the env file and enter values as prompted. See template below:
@@ -92,16 +93,16 @@ We will provision GCP infrastructure from your localhost. So, we need to handle 
 
     >GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
 
-    >PROJECT_ID={gcp-project-id} (project-id not project-number)
+    >PROJECT_ID={gcp-project-id} **(project-id not project-number)**
 
     >GCP_REGION={preferred-gcp-region}
 
-    >BUCKET_NAME={your-gcp-bucket-name}
+    >BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
 
     >SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
 
 
-#### Build
+#### Build Containers
 Assuming all above steps are done, build the docker images required to run the different apps.
 
 1. From the root of the project, run:
@@ -109,7 +110,7 @@ Assuming all above steps are done, build the docker images required to run the d
     $ make docker
     ```
 
-You may need to disable docker buildkit for Mac machines
+TIP: You may need to disable docker buildkit for Mac machines (if you have trouble)
 
 ```bash
 export DOCKER_BUILDKIT=0
@@ -132,7 +133,7 @@ ___
 Now that the Feature Store is in place, utilize the following add-on apps to perform different tasks as desired.
 
 #### Jupyter
-Run a Jupyter notebook to perform exploratory data analysis and interact with the
+Run a Jupyter notebook to perform exploratory data analysis (including data drift analysis) and interact with the
 Feature Store using the [Feast SDK](https://rtd.feast.dev/en/master/).
 
 ```bash
@@ -146,16 +147,22 @@ pulled from **BigQuery** using **Feast**. The model is versioned, pickled, and s
 $ make train
 ```
 
->Training can take place locally (for the demo) or in the cloud through a managed service offering, or as a Kubernetes (GKE) job. There is flexibility here, which is why we built a container.
+>Training takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud through a managed service offering, or as a Kubernetes (GKE) job.
 
 #### Serve
-Expose the vaccine demand forecast model for inference with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) and [Fast API](https://fastapi.tiangolo.com/). Online feature are pulled from **Redis** using **Feast**.
+Expose the vaccine demand forecast model for inference with [Fast API](https://fastapi.tiangolo.com/). Online feature are pulled from **Redis** using **Feast** for low-latency retrieval.
 
 ```bash
 $ make serve
 ```
 
->Serving can take place locally (for the demo) or in the cloud through a managed service offering, or in Kubernetes (GKE + Kuberay). There is flexibility here, which is why we built a container.
+>Serving takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud through a managed service offering (Vertex AI), or in Kubernetes (GKE + Kuberay).
+
+Once the serve container is running, you can run:
+```bash
+$ curl -X GET -H "Content-type: application/json" -d '{"state":"California"}' "http://127.0.0.1:8000/predict"
+```
+with any US State to get the forecast for next week's COVID-19 vaccine demand.
 
 #### Teardown
 Cleanup GCP infrastructure and teardown Feature Store.
@@ -163,6 +170,9 @@ Cleanup GCP infrastructure and teardown Feature Store.
 ```bash
 $ make teardown
 ```
+
+### Cleanup
+Besides running the teardown container, you should run `docker compose down` periodically after shutting down containers to clean up excess networks and unused Docker artifacts.
 
 ___
 
