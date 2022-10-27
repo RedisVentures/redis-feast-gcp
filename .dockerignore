@@ -1,0 +1,6 @@
+img/
+*__pycache__
+*.ipynb_checkpoints
+*.pkl
+*Dockerfile
+.env*
