@@ -1,15 +1,13 @@
-# gcp-feast-demo
-*An end-to-end architecture of [Feast](https://docs.feast.dev/) with [Redis Cloud](https://app.redislabs.com/) (as the Online Feature Store) deployed on Google Cloud Platform (GCP).*
+# redis-feast-gcp
+*An end-to-end machine learning feature store architecture using [Feast](https://docs.feast.dev/) and [Redis Enterprise](https://app.redislabs.com/) (as the Online Feature Store) deployed on [Google Cloud Platform](https://cloud.google.com/) (GCP).*
 
->*This demo is not meant to replace a production ML system. Rather, it should demonstrate several core components, all of which should be interchangeable and modular with your specific setup.*
+>This prototype is a reference architecture. All components are containerized, and various customizations and optimizations are required before running in production.
 ___
 
-## Demo ML Application
-To demonstrate the power of a Feature Store, we include a demo machine learning application that **predicts the count of next week's administered COVID-19 vaccine doses** (by US state).
+## Demo ML Application: COVID-19 Vaccination Forecasting
+To demonstrate the power of a Feature Store, we provide a demo application that **forecasts the count administered COVID-19 vaccine doses** (by US state) **for next week**.
 
-The Feature Store fuses together weekly [google search trends data](https://console.cloud.google.com/marketplace/product/bigquery-public-datasets/covid19-vaccination-search-insights) along with lagging [vaccine dose counts](https://github.com/owid/covid-19-data).
-
->*Both datasets are open source and provided free to the public!*
+The Feature Store fuses together weekly [google search trends data](https://console.cloud.google.com/marketplace/product/bigquery-public-datasets/covid19-vaccination-search-insights) along with lagging [vaccine dose counts](https://github.com/owid/covid-19-data). *Both datasets are open source and provided free to the public.*
 
 The full system will include:
 - GCP infrastructure setup and teardown
@@ -20,20 +18,19 @@ The full system will include:
 
 Here's a high-level picture of the system architecture:
 
-![architecture](img/Feast_GCP_Redis_Ray_Demo.png)
+![architecture](img/redis-feast-gcp-architecture.png)
 
 
-The architecture takes advantage of many GCP managed services to make the setup/teardown as simple as possible. will include different tools based on the environment.
-
-The stack includes the following components:
+The architecture takes advantage of GCP managed services in combination with Feast and Redis.
 
 - **Feast** feature definitions in a **GitHub** repository (here).
-- Feature registry persisted in a **Cloud Storage** bucket with **Feast** and **Cloud Build** for CI/CD.
+- Feature registry persisted in a **Cloud Storage** bucket with **Feast** and **Cloud Build** for CI/CD (*coming soon*).
 - Offline feature data stored in **BigQuery** as the source of record.
 - Daily **Cloud Scheduler** tasks to trigger a materialization **Cloud Function** that will migrate the latest feature updates to the Online feature store.
-- **Redis Cloud** (or any Redis) as the online store.
+- Model training tasks can run by pulling historically accurate training data through **Feast**. Models stored+versioned in **Redis**.
+- Model serving tasks pull online (low latency) features with **Feast**.
 
-By the end of this tutorial, you will have all of these components running in your GCP project, or just follow along to see how it's stitched together.
+By the end of this tutorial, you will have all components running in your GCP project.
 
 ___
 
@@ -93,7 +90,7 @@ This demo provisions GCP infrastructure from your localhost. So, we need to hand
 
     >GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
 
-    >PROJECT_ID={gcp-project-id} **(project-id not project-number)**
+    >PROJECT_ID={gcp-project-id} **(project-id NOT project-number)**
 
     >GCP_REGION={preferred-gcp-region}
 
@@ -110,7 +107,7 @@ Assuming all above steps are done, build the docker images required to run the d
     $ make docker
     ```
 
-TIP: You may need to disable docker buildkit for Mac machines (if you have trouble)
+**TIP**: You may need to disable docker buildkit for Mac machines (if you have trouble)
 
 ```bash
 export DOCKER_BUILDKIT=0
@@ -130,7 +127,7 @@ At the completion of this step, the majority of the architecture above will be d
 ___
 
 ### Other Components
-Now that the Feature Store is in place, utilize the following add-on apps to perform different tasks as desired.
+Now that the Feature Store is in place, utilize the following add-ons to perform different tasks as desired.
 
 #### Jupyter
 Run a Jupyter notebook to perform exploratory data analysis (including data drift analysis) and interact with the
@@ -147,7 +144,7 @@ pulled from **BigQuery** using **Feast**. The model is versioned, pickled, and s
 $ make train
 ```
 
->Training takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud through a managed service offering, or as a Kubernetes (GKE) job.
+>Training takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud with Vertex AI (coming soon).
 
 #### Serve
 Expose the vaccine demand forecast model for inference with [Fast API](https://fastapi.tiangolo.com/). Online feature are pulled from **Redis** using **Feast** for low-latency retrieval.
@@ -156,7 +153,7 @@ Expose the vaccine demand forecast model for inference with [Fast API](https://f
 $ make serve
 ```
 
->Serving takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud through a managed service offering (Vertex AI), or in Kubernetes (GKE + Kuberay).
+>Serving takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud with Vertex AI (coming soon).
 
 Once the serve container is running, you can run:
 ```bash
