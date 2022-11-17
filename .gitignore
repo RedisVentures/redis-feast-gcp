@@ -4,3 +4,4 @@
 *.csv
 *.egg-info
 .env
+*build

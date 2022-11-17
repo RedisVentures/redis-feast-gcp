@@ -80,34 +80,34 @@ Setup a [Redis Cloud instance](https://app.redislabs.com/) and record the public
 This demo provisions GCP infrastructure from your localhost. So, we need to handle local environment variables, thankfully all handled by Docker and a `.env` file.
 
 
-1. Make the env file and enter values as prompted. See template below:
-    ```bash
-    $ make env
-    ```
-    >REDIS_CONNECTION_STRING={host}:{port}
+Make the env file and enter values as prompted. See template below:
+```bash
+$ make env
+```
+>REDIS_CONNECTION_STRING={host}:{port}
 
-    >REDIS_PASSWORD={password}
+>REDIS_PASSWORD={password}
 
-    >GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
+>GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
 
-    >PROJECT_ID={gcp-project-id} **(project-id NOT project-number)**
+>PROJECT_ID={gcp-project-id} **(project-id NOT project-number)**
 
-    >GCP_REGION={preferred-gcp-region}
+>GCP_REGION={preferred-gcp-region}
 
-    >BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
+>BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
 
-    >SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
+>SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
 
 
 #### Build Containers
 Assuming all above steps are done, build the docker images required to run the different apps.
 
-1. From the root of the project, run:
-    ```bash
-    $ make docker
-    ```
+From the root of the project, run:
+```bash
+$ make docker
+```
 
-**TIP**: You may need to disable docker buildkit for Mac machines (if you have trouble)
+**TIP**: Disable docker buildkit for Mac machines (if you have trouble with this step)
 
 ```bash
 export DOCKER_BUILDKIT=0
