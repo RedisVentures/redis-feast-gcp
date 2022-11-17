@@ -1,4 +1,4 @@
-FROM redisventures/gcp-feast:1.0.0
+FROM redisventures/redis-feast-gcp:1.0.0
 
 WORKDIR /app
 COPY ./teardown ./teardown/

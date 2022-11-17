@@ -29,7 +29,7 @@ env:
 # help: docker                - Build required docker images
 .PHONY: docker
 docker:
-	@docker build --platform=linux/amd64 -t redisventures/gcp-feast:1.0.0 .
+	@docker build --platform=linux/amd64 -t redisventures/redis-feast-gcp:1.0.0 .
 	@docker compose build
 
 
