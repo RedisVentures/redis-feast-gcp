@@ -22,7 +22,6 @@ help:
 env:
 	@echo "Generate ENV file"
 	@rm -rf .env
-	@touch .env
 	@./env.sh
 
 
