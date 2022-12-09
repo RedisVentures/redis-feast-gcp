@@ -87,14 +87,7 @@ weekly_vaccinations_fv = FeatureView(
 serving_features = FeatureService(
     name="serving_features",
     features=[
-        vaccine_search_trends_fv[[
-            "lag_1_vaccine_interest",
-            "lag_2_vaccine_interest",
-            "lag_1_vaccine_intent",
-            "lag_2_vaccine_intent",
-            "lag_1_vaccine_safety",
-            "lag_2_vaccine_safety"
-        ]],
+        vaccine_search_trends_fv,
         weekly_vaccinations_fv[[
             "lag_1_weekly_vaccinations_count",
             "lag_2_weekly_vaccinations_count"

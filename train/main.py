@@ -1,23 +1,16 @@
 
 
 import pandas as pd
+import tempfile
+import shutil
 import warnings
 warnings.filterwarnings('ignore')
 
 from datetime import timedelta
-from sklearn.metrics import mean_absolute_error
-from sklearn.preprocessing import OrdinalEncoder
 from xgboost import XGBRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.compose import (
-    make_column_transformer,
-    make_column_selector
-)
-from sklearn.preprocessing import OrdinalEncoder
-
 from feature_store.repo import config
 from feature_store.utils import (
-    ModelRepo,
+    TritonGCSModelRepo,
     DataFetcher,
     logger,
     storage
@@ -26,6 +19,49 @@ from feature_store.utils import (
 
 # Setup logger
 logging = logger.get_logger()
+
+def model_config() -> str:
+    # TODO - make these more configurable?
+    return f"""name: "{config.MODEL_NAME}"
+backend: "fil"
+max_batch_size: 8192
+input [
+ {{
+    name: "input__0"
+    data_type: TYPE_FP32
+    dims: [ 9 ]
+  }}
+]
+output [
+ {{
+    name: "output__0"
+    data_type: TYPE_FP32
+    dims: [ 1 ]
+  }}
+]
+instance_group [{{ kind: KIND_CPU }}]
+parameters [
+  {{
+    key: "model_type"
+    value: {{ string_value: "xgboost_json" }}
+  }},
+  {{
+    key: "output_class"
+    value: {{ string_value: "false" }}
+  }},
+  {{
+    key: "storage_type"
+    value: {{ string_value: "AUTO" }}
+  }},
+  {{
+    key: "use_experimental_optimizations"
+    value: {{ string_value: "true" }}
+  }}
+]
+
+dynamic_batching {{
+  max_queue_delay_microseconds: 100
+}}"""
 
 def train_test_split(
     data: pd.DataFrame,
@@ -55,12 +91,12 @@ def train_test_split(
     split_point = data[timestamp_col].max() - delta
     train = data[data[timestamp_col] <= split_point]
     test = data[data[timestamp_col] > split_point]
-    train.drop(timestamp_col, axis=1, inplace=True)
-    test.drop(timestamp_col, axis=1, inplace=True)
+    train.drop(columns=[timestamp_col, "state"], axis=1, inplace=True)
+    test.drop(columns=[timestamp_col, "state"], axis=1, inplace=True)
     logging.info(f"Training Results: {len(train)} samples in the training set")
     return train, test
 
-def xgboost_train(train: pd.DataFrame):
+def xgboost_train(train: pd.DataFrame, test: pd.DataFrame = None):
     """
     Train an XGBoost model along with an Ordinal Encoder and wrap
     into a Pipeline object.
@@ -71,57 +107,27 @@ def xgboost_train(train: pd.DataFrame):
     Returns:
         model: The trained pipeline model.
     """
+    print(train.head())
+    print(train.columns)
     # split into input and output columns
     trainX, trainy = train.iloc[:, :-1], train.iloc[:, -1]
 
-    # make model
-    ordinal_encoder = make_column_transformer(
-        (
-            OrdinalEncoder(dtype=int),
-            make_column_selector(pattern="state"),
-        ),
-        remainder="passthrough",
+    # make xgboost regressor model
+    model = XGBRegressor(
+        random_state=42,
+        objective="count:poisson",
+        tree_method="hist",
+        n_estimators=250,
+        max_depth=4
     )
-    model = make_pipeline(
-        ordinal_encoder,
-        XGBRegressor(
-            random_state=42,
-            objective="count:poisson",
-            tree_method="hist",
-            enable_categorical=True,
-            n_estimators=250,
-            max_depth=4
+    if test:
+        testX, testy = test.iloc[:, :-1], test.iloc[:, -1]
+        return model.fit(
+            trainX,
+            trainy,
+            eval_set=[(testX, testy)]
         )
-    )
-    model.fit(trainX, trainy)
-    return model
-
-def train_validate(
-    data: pd.DataFrame,
-    n_test_weeks: int,
-    timestamp_column: str
-):
-    """
-    Train model on data subset and validate on a holdout set.
-
-    Args:
-        data (pd.DataFrame): Historical training data to train the model.
-        n_test_weeks (int): Number of weeks of data to use for testing.
-        timestamp_column (str): DataFrame column name that contains the timestamp.
-    """
-    # split dataset by week
-    train, test = train_test_split(
-        data=data,
-        n=n_test_weeks,
-        timestamp_col=timestamp_column
-    )
-    testX, testy = test.iloc[:, :-1], test.iloc[:, -1]
-    # train
-    model = xgboost_train(train)
-    # predict
-    predictions = model.predict(testX)
-    error = mean_absolute_error(testy, predictions)
-    return error, testy.to_numpy(), predictions, model
+    return model.fit(trainX, trainy)
 
 def train(data_fetcher: DataFetcher):
     """
@@ -130,6 +136,7 @@ def train(data_fetcher: DataFetcher):
     """
     logging.info("Fetching training data")
     timestamp_column = "event_timestamp"
+    n_test_weeks = 1
     ds = data_fetcher.get_training_data(
         entity_query=f"""
             select
@@ -144,21 +151,27 @@ def train(data_fetcher: DataFetcher):
     ds.dropna(inplace=True)
     ds.sort_values([timestamp_column, 'state'], axis=0, inplace=True)
 
-    # Create initial model
-    mae, y, yhat, model = train_validate(ds, 1, timestamp_column)
+    # Train/Test split for validation
+    train, test = train_test_split(
+        data=ds,
+        n=n_test_weeks,
+        timestamp_col=timestamp_column
+    )
 
-    # Report error
-    logging.info(f"Training Results: Number of Samples in Test Set -- {len(yhat)}")
-    logging.info(f"Training Results: Mean Absolute Error (MAE) -- {mae}")
+    # Train initial model
+    model = xgboost_train(train, test)
+    logging.info(f"Initial model training complete. Validation loss observed.")
 
     # Train final model
-    model = xgboost_train(ds.drop(timestamp_column, axis=1))
+    model = xgboost_train(ds.drop(columns=[timestamp_column, "state"], axis=1))
+    logging.info("Final model trained.")
     return model
 
 def main():
     # Init feature store and data fetcher
     logging.info("Loading feature store and data fetcher")
-   # Create FeatureStore
+
+    # Create FeatureStore
     logging.info("Fetching feature store")
     store = storage.get_feature_store(
         config_path=config.REPO_CONFIG,
@@ -166,14 +179,22 @@ def main():
     )
     data_fetcher = DataFetcher(store)
 
+    # Setup model repo
+    model_repo = TritonGCSModelRepo(
+        bucket_name=config.BUCKET_NAME,
+        model_name=config.MODEL_NAME,
+        model_filename=config.MODEL_FILENAME
+    )
+
     # Train
     model = train(data_fetcher)
+    tmp_dir = tempfile.mkdtemp()
+    tmp_model_path = f"{tmp_dir}/xgboost.model"
+    model.save_model(tmp_model_path)
 
     # Save model
-    model_repo = ModelRepo.from_config(config)
-    new_version = model_repo.save_version(model)
-
-    logging.info(f"Saved model version {new_version}")
+    new_version = model_repo.save_version(model_path=tmp_model_path)
+    shutil.rmtree(tmp_dir)
     logging.info("Done")
 
 

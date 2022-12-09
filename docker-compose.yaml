@@ -37,12 +37,10 @@ services:
       - ".env"
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-  serve:
-    container_name: gcp-feast-serve
-    platform: linux/amd64
-    build:
-      context: ./
-      dockerfile: ./serve/Dockerfile
+  triton:
+    container_name: tritonserver
+    image: triton_fil
+    command: ["tritonserver", "--model-repository=gs://gcp-feast-demo/models",  "--log-verbose=3", "--log-info=1", "--log-warning=1", "--log-error=1"]
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
     env_file:
@@ -50,9 +48,13 @@ services:
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
     expose:
+      - 8001
+      - 8002
       - 8000
     ports:
+      - 8001:8001
       - 8000:8000
+      - 8002:8002
   teardown:
     container_name: gcp-feast-teardown
     build:

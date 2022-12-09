@@ -1,0 +1,6 @@
+name: py38
+dependencies:
+  - pip
+  - python=3.8
+  - pip:
+      - git+https://github.com/RedisVentures/redis-feast-gcp@main

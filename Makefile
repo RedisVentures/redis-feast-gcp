@@ -22,7 +22,7 @@ help:
 env:
 	@echo "Generate ENV file"
 	@rm -rf .env
-	@./env.sh
+	@./scripts/env.sh
 
 
 # help: docker                - Build required docker images
@@ -49,12 +49,10 @@ train:
 jupyter:
 	@docker compose run --service-ports jupyter
 
-
-# help: serve                 - Serve Vaccine Demand model
-.PHONY: serve
-serve:
-	@docker compose run --service-ports serve
-
+# help: triton               - Spin up Triton
+.PHONY: triton
+triton:
+	@docker compose run --service-ports triton
 
 # help: teardown              - Teardown GCP infra and Feast
 .PHONY: teardown
