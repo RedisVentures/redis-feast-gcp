@@ -93,13 +93,10 @@ class TritonPythonModel:
             in_0 = pb_utils.get_input_tensor_by_name(request, "input__0")
             state = in_0.as_numpy().reshape(1)
             logging.info(state)
-            logging.info(state.shape)
 
             # Fetch feature data from Feast db
             feature_vector = self.data_fetcher.get_online_data(state=state[0].decode('utf-8'))
-            feature_vector["state"] = 0
-            feature_vector.drop(columns=["weekly_vaccinations_count"], inplace=True)
-            feature_out = feature_vector.to_numpy().reshape(-1, 9)
+            feature_out = feature_vector.to_numpy().reshape(-1, 8)
             logging.info(feature_vector)
             out_tensor_0 = pb_utils.Tensor(
                 "output__0",
