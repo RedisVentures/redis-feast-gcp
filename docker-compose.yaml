@@ -40,7 +40,7 @@ services:
   triton:
     container_name: tritonserver
     image: triton_fil
-    command: ["tritonserver", "--model-repository=gs://gcp-feast-demo/models",  "--log-verbose=3", "--log-info=1", "--log-warning=1", "--log-error=1"]
+    command: ["tritonserver", "--model-repository=gs://gcp-feast-demo/models",  "--model-control-mode=poll", "--log-verbose=3", "--log-info=1", "--log-warning=1", "--log-error=1"]
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
     env_file:
