@@ -20,49 +20,6 @@ from feature_store.utils import (
 # Setup logger
 logging = logger.get_logger()
 
-def model_config() -> str:
-    # TODO - make these more configurable?
-    return f"""name: "{config.MODEL_NAME}"
-backend: "fil"
-max_batch_size: 8192
-input [
- {{
-    name: "input__0"
-    data_type: TYPE_FP32
-    dims: [ 9 ]
-  }}
-]
-output [
- {{
-    name: "output__0"
-    data_type: TYPE_FP32
-    dims: [ 1 ]
-  }}
-]
-instance_group [{{ kind: KIND_CPU }}]
-parameters [
-  {{
-    key: "model_type"
-    value: {{ string_value: "xgboost_json" }}
-  }},
-  {{
-    key: "output_class"
-    value: {{ string_value: "false" }}
-  }},
-  {{
-    key: "storage_type"
-    value: {{ string_value: "AUTO" }}
-  }},
-  {{
-    key: "use_experimental_optimizations"
-    value: {{ string_value: "true" }}
-  }}
-]
-
-dynamic_batching {{
-  max_queue_delay_microseconds: 100
-}}"""
-
 def train_test_split(
     data: pd.DataFrame,
     n: int,
