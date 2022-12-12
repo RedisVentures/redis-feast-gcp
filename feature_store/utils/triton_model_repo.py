@@ -18,7 +18,7 @@ class TritonGCSModelRepo:
     ):
         """
         TritonModelRepo is a basic storage and versioning layer for ML models using
-        Redis as the backend.
+        GCS as the backend.
         """
         self.bucket_name = bucket_name
         self.model_name = model_name
@@ -71,19 +71,3 @@ class TritonGCSModelRepo:
         logging.info(f"Saved model version {version}.")
         self._refresh()
         return version
-
-    def fetch_version(self, version: int) -> str:
-        """
-        Fetch model by version.
-
-        Args:
-            version (int): Model version number to fetch.
-        """
-        path = f"{self._version_path(version)}/{self.model_filename}"
-
-
-    def fetch_latest(self) -> str:
-        """
-        Fetch the latest model version.
-        """
-        path = f"{self._version_path(self.latest_version)}/{self.model_filename}"

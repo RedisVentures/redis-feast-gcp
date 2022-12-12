@@ -5,6 +5,18 @@ from typing import Optional
 
 
 class DataFetcher:
+    X_cols = [
+        'lag_1_vaccine_interest',
+        'lag_2_vaccine_interest',
+        'lag_1_vaccine_intent',
+        'lag_2_vaccine_intent',
+        'lag_1_vaccine_safety',
+        'lag_2_vaccine_safety',
+        'lag_1_weekly_vaccinations_count',
+        'lag_2_weekly_vaccinations_count'
+    ]
+
+    y_col = ['weekly_vaccinations_count']
 
     def __init__(self, fs: FeatureStore):
         """
@@ -30,7 +42,7 @@ class DataFetcher:
                 features=self.serving_feature_svc,
                 entity_rows=[entities]
             ).to_df()
-            return features
+            return features[self.X_cols]
         except Exception as why:
             print(why)
 

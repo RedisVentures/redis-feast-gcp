@@ -107,21 +107,22 @@ def xgboost_train(train: pd.DataFrame, test: pd.DataFrame = None):
     Returns:
         model: The trained pipeline model.
     """
-    print(train.head())
-    print(train.columns)
     # split into input and output columns
-    trainX, trainy = train.iloc[:, :-1], train.iloc[:, -1]
+    train = train.to_numpy()
+    trainX, trainy = train[:, :-1], train[:, -1]
 
     # make xgboost regressor model
     model = XGBRegressor(
         random_state=42,
         objective="count:poisson",
         tree_method="hist",
+        eval_metric="mae",
         n_estimators=250,
         max_depth=4
     )
-    if test:
-        testX, testy = test.iloc[:, :-1], test.iloc[:, -1]
+    if isinstance(test, pd.DataFrame):
+        test = test.to_numpy()
+        testX, testy = test[:, :-1], test[:, -1]
         return model.fit(
             trainX,
             trainy,
@@ -159,11 +160,14 @@ def train(data_fetcher: DataFetcher):
     )
 
     # Train initial model
-    model = xgboost_train(train, test)
+    model = xgboost_train(
+        train[data_fetcher.X_cols + data_fetcher.y_col],
+        test[data_fetcher.X_cols + data_fetcher.y_col]
+    )
     logging.info(f"Initial model training complete. Validation loss observed.")
 
     # Train final model
-    model = xgboost_train(ds.drop(columns=[timestamp_column, "state"], axis=1))
+    model = xgboost_train(ds[data_fetcher.X_cols + data_fetcher.y_col])
     logging.info("Final model trained.")
     return model
 

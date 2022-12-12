@@ -9,8 +9,8 @@ echo project_id = $PROJECT_ID > ~/.bigqueryrc
 # Enable APIs
 gcloud services enable artifactregistry.googleapis.com
 gcloud services enable ml.googleapis.com
+gcloud services enable aiplatform.googleapis.com
 gcloud services enable bigquery.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
 gcloud services enable cloudscheduler.googleapis.com
 gcloud services enable cloudfunctions.googleapis.com
 
@@ -76,7 +76,8 @@ gcloud ai models upload \
   --region=$GCP_REGION \
   --display-name=$DEPLOYED_MODEL_NAME \
   --container-image-uri=$CONTAINER_IMAGE_URI \
-  --artifact-uri=$REGISTRY_URI
+  --artifact-uri=$REGISTRY_URI \
+  --container-args='--model-control-mode=poll --log-verbose=3 --log-info=1 --log-warning=1 --log-error=1'
 
 ## Create Endpoint
 gcloud ai endpoints create \
