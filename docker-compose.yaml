@@ -26,35 +26,6 @@ services:
     environment:
       JUPYTER_ENABLE_LAB: "yes"
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-  train:
-    container_name: gcp-feast-train
-    build:
-      context: ./
-      dockerfile: ./train/Dockerfile
-    volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
-    env_file:
-      - ".env"
-    environment:
-      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-  triton:
-    container_name: tritonserver
-    image: triton_fil
-    command: ["tritonserver", "--model-repository=gs://gcp-feast-demo/models",  "--model-control-mode=poll", "--log-verbose=3", "--log-info=1", "--log-warning=1", "--log-error=1"]
-    volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
-    env_file:
-      - ".env"
-    environment:
-      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-    expose:
-      - 8001
-      - 8002
-      - 8000
-    ports:
-      - 8001:8001
-      - 8000:8000
-      - 8002:8002
   teardown:
     container_name: gcp-feast-teardown
     build:

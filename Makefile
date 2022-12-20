@@ -22,7 +22,7 @@ help:
 env:
 	@echo "Generate ENV file"
 	@rm -rf .env
-	@./scripts/env.sh
+	@./env.sh
 
 
 # help: docker                - Build required docker images
@@ -36,13 +36,6 @@ docker:
 .PHONY: setup
 setup:
 	@docker compose run setup
-
-
-# help: train                 - Train Vaccine Demand model
-.PHONY: train
-train:
-	@docker compose run train
-
 
 # help: jupyter               - Spin up a jupyter notebook to explore dataset and model
 .PHONY: jupyter
