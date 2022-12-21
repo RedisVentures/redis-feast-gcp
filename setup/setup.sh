@@ -60,7 +60,7 @@ MODEL_STORAGE_URI=gs://$BUCKET_NAME/models
 
 ## Upload Triton Model Repository Contents
 gsutil cp -r ./setup/models gs://$BUCKET_NAME/
-gsutil rm $MODEL_STORAGE_URI/ensemble-model/1/.gitkeep
+gsutil rm $MODEL_STORAGE_URI/ensemble/1/.gitkeep
 
 ## Create Artifact Registry
 echo "\nCreating GCP Artifact Repository for Triton Serving Container"

@@ -5,7 +5,7 @@
 ARG TRITON_VERSION=2.28.0
 ARG TRITON_CONTAINER_VERSION=22.11
 
-FROM nvcr.io/nvidia/tritonserver:22.11-py3 AS full
+FROM triton_fil_test AS full
 
 FROM nvcr.io/nvidia/tritonserver:22.11-py3-min
 

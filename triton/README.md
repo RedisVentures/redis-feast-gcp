@@ -40,6 +40,8 @@ WORKDIR /src
 COPY ./entrypoint.sh ./
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/compat/lib.real:/usr/local/hugectr/lib:/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/compat/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:/usr/local/lib:/repos/dist/lib
+
+ENTRYPOINT ./entrypoint.sh
 ```
 
 ## Build Image, Tag, Push
