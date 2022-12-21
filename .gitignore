@@ -5,3 +5,16 @@
 *.egg-info
 .env
 *build
+
+### Terraform ###
+**/.terraform/*
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+.terraformrc
+terraform.rc
+

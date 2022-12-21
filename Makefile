@@ -24,6 +24,22 @@ env:
 	@rm -rf .env
 	@./env.sh
 
+# help:
+.PHONY:	tf-deploy
+tf-deploy:
+	cp .env re-gcp-mp/env; \
+	cd re-gcp-mp; \
+	terraform init; \
+	terraform plan; \
+	terraform apply --auto-approve; \
+	echo 'REDIS_CONNECTION_STRING='`terraform output db_public_endpoint` >> env; \
+	echo 'REDIS_PASSWORD='`terraform output db_password` >> env; \
+	cp env ../.env
+
+# help:
+.PHONY: tf-destroy
+tf-destroy:
+	cd re-gcp-mp && terraform destroy --auto-approve
 
 # help: docker                - Build required docker images
 .PHONY: docker
