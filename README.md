@@ -1,34 +1,31 @@
-# redis-feast-gcp
-*An end-to-end machine learning feature store architecture using [Feast](https://docs.feast.dev/) and [Redis Enterprise](https://app.redislabs.com/) (as the Online Feature Store) deployed on [Google Cloud Platform](https://cloud.google.com/) (GCP).*
+# redis-feast-triton-gcp
+*An end-to-end machine learning feature store reference architecture using [Feast](https://docs.feast.dev/) and [Redis Enterprise](https://app.redislabs.com/) (as the Online Feature Store) deployed on [Google Cloud Platform](https://cloud.google.com/).*
 
->This prototype is a reference architecture. All components are containerized, and various customizations and optimizations are required before running in production.
+>This prototype is a reference architecture. All components are containerized, and various customizations and optimizations might be required before running in production for your specific use case.
 ___
 
 ## Demo ML Application: COVID-19 Vaccination Forecasting
-To demonstrate the power of a Feature Store, we provide a demo application that **forecasts the count administered COVID-19 vaccine doses** (by US state) **for next week**.
+To demonstrate the value of a Feature Store, we provide a demo application that **forecasts the counts of administered COVID-19 vaccine doses** (by US state) **for the next week**.
 
 The Feature Store fuses together weekly [google search trends data](https://console.cloud.google.com/marketplace/product/bigquery-public-datasets/covid19-vaccination-search-insights) along with lagging [vaccine dose counts](https://github.com/owid/covid-19-data). *Both datasets are open source and provided free to the public.*
 
 The full system will include:
 - GCP infrastructure setup and teardown
 - Offline (BigQuery) and Online (Redis Enterprise) Feature Stores using Feast
-- Model Training and Serving applications
+- Model serving in Vertex AI + NVIDIA Triton Inference Server
 
-### Architecture
-
-Here's a high-level picture of the system architecture:
+### Reference Architecture
 
 ![architecture](img/redis-feast-gcp-architecture.png)
-
 
 The architecture takes advantage of GCP managed services in combination with Feast and Redis.
 
 - **Feast** feature definitions in a **GitHub** repository (here).
-- Feature registry persisted in a **Cloud Storage** bucket with **Feast** and **Cloud Build** for CI/CD (*coming soon*).
+- Feature registry persisted in a **Cloud Storage** bucket with **Feast** and *COMING SOON* **Cloud Build** for CI/CD.
 - Offline feature data stored in **BigQuery** as the source of record.
 - Daily **Cloud Scheduler** tasks to trigger a materialization **Cloud Function** that will migrate the latest feature updates to the Online feature store.
-- Model training tasks can run by pulling historically accurate training data through **Feast**. Models stored+versioned in **Redis**.
-- Model serving tasks pull online (low latency) features with **Feast**.
+- Model serving with **Vertex AI Prediction** using a custom **NVIDIA Triton Inference Server** container.
+- Online feature retrieval from **Redis** (low latency) with **Feast**.
 
 By the end of this tutorial, you will have all components running in your GCP project.
 
@@ -96,7 +93,7 @@ $ make env
 
 >BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
 
->SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
+>SERVICE_ACCOUNT_EMAIL={your-gcp-svc-account-email}
 
 
 #### Build Containers
@@ -113,53 +110,40 @@ $ make docker
 export DOCKER_BUILDKIT=0
 ```
 
-The script will build a [base docker image](./Dockerfile) and then build individiual images for each app: [`setup`](setup/), [`train`](train/), [`serve`](serve/), [`jupyter`](jupyter/), and [`teardown`](teardown/).
+The script will build a [base Docker image](./Dockerfile) and then build separate images for each step: [`setup`](setup/) and [`jupyter`](jupyter/). 
 
-This will take some time, ~5-10min, so grab a cup of coffee.
+>This will take some time, so grab a cup of coffee.
 
-### Feature Store Setup
+### Infra Setup
+The provided [Makefile](./Makefile) wraps Docker commands to make it super easy to run. This particular step:
+- Provisions GCP infrastructure
+- Generates the feature store
+- Deploys the model with Triton Inference Server on Vertex AI
 
-Provision GCP infrastructure, generate datasets, and create the Feast Feature Store.
 ```bash
 $ make setup
 ```
-At the completion of this step, the majority of the architecture above will be deployed in your GCP.
+>At the completion of this step, all of the architecture above will be deployed in your GCP project.
+
+#### About Triton on Vertex AI
+
+As noted above, Vertex AI allows you to [deploy a custom serving container](https://cloud.google.com/vertex-ai/docs/predictions/use-custom-container) as long as it meets specific baseline requirements. This allows us to use one of our favorite serving frameworks: NVIDIA's [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server). NVIDIA and GCP already did the legwork to integrate their products so that we can use them together:
+
+![triton](img/triton-vertex.png)
+
+A Triton ensemble model can be served with Vertex AI and leverage Redis and Feast for low latency feature retrieval, combining the best in class hardware and software to serve models in real time.
+
 ___
 
 ### Other Components
 Now that the Feature Store is in place, utilize the following add-ons to perform different tasks as desired.
 
-#### Jupyter
-Run a Jupyter notebook to perform exploratory data analysis (including data drift analysis) and interact with the
-Feature Store using the [Feast SDK](https://rtd.feast.dev/en/master/).
+#### Jupyter Notebooks
+This repo provides several helper/tutorial notebooks for working with Feast, Redis, and GCP. Open a Jupyter session to explore these resources:
 
 ```bash
 $ make jupyter
 ```
-#### Train
-Train a vaccine demand forecast model using [XGBoost](https://xgboost.readthedocs.io/en/stable/) and ML features
-pulled from **BigQuery** using **Feast**. The model is versioned, pickled, and stored in Redis for access from other apps.
-
-```bash
-$ make train
-```
-
->Training takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud with Vertex AI (coming soon).
-
-#### Serve
-Expose the vaccine demand forecast model for inference with [Fast API](https://fastapi.tiangolo.com/). Online feature are pulled from **Redis** using **Feast** for low-latency retrieval.
-
-```bash
-$ make serve
-```
-
->Serving takes place locally for the demo. But there is flexibility here, which is why we built a container. This could also be deployed in the cloud with Vertex AI (coming soon).
-
-Once the serve container is running, you can run:
-```bash
-$ curl -X GET -H "Content-type: application/json" -d '{"state":"California"}' "http://127.0.0.1:8000/predict"
-```
-with any US State to get the forecast for next week's COVID-19 vaccine demand.
 
 #### Teardown
 Cleanup GCP infrastructure and teardown Feature Store.
@@ -169,7 +153,6 @@ $ make teardown
 ```
 
 ### Cleanup
-Besides running the teardown container, you should run `docker compose down` periodically after shutting down containers to clean up excess networks and unused Docker artifacts.
+Besides running the teardown container, you can run `docker compose down` periodically after shutting down containers to clean up excess networks and unused Docker artifacts.
 
 ___
-

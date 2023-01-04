@@ -15,6 +15,7 @@ FROM redisventures/redis-feast-gcp:1.0.0 as appImg
 WORKDIR /app
 
 COPY ./setup ./setup/
+COPY ./requirements.txt .
 COPY --from=condaImg /app/python3.8.tar.gz ./setup/models/preprocess/python3.8.tar.gz
 
 RUN apt-get update && \

@@ -28,6 +28,7 @@ echo "\nCreating cloud function for materialization"
 mv setup/materialize.py .
 gcloud functions deploy feast-update-features \
     --source=./ \
+    --ignore-file=./setup/.gcloudignore \
     --entry-point=main \
     --memory=1024MB \
     --allow-unauthenticated \
@@ -59,7 +60,7 @@ DEPLOYED_MODEL_NAME=vaccine-predictor
 MODEL_STORAGE_URI=gs://$BUCKET_NAME/models
 
 ## Upload Triton Model Repository Contents
-gsutil cp -r ./setup/models gs://$BUCKET_NAME/
+gsutil -m cp -r ./setup/models gs://$BUCKET_NAME/
 gsutil rm $MODEL_STORAGE_URI/ensemble/1/.gitkeep
 
 ## Create Artifact Registry
@@ -85,7 +86,7 @@ gcloud ai models upload \
   --region=$GCP_REGION \
   --display-name=$DEPLOYED_MODEL_NAME \
   --container-image-uri=$CONTAINER_IMAGE_URI \
-  --artifact-uri=$REGISTRY_URI \
+  --artifact-uri=$MODEL_STORAGE_URI \
   --container-env-vars="REDIS_CONNECTION_STRING=$REDIS_CONNECTION_STRING","REDIS_PASSWORD=$REDIS_PASSWORD","PROJECT_ID=$PROJECT_ID","GCP_REGION=$GCP_REGION","BUCKET_NAME=$BUCKET_NAME"
 
 # Create Endpoint

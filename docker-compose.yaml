@@ -3,6 +3,7 @@ version: "3.7"
 services:
   setup:
     container_name: redis-feast-gcp-setup
+    platform: linux/amd64
     build:
       context: ./
       dockerfile: ./setup/Dockerfile

@@ -35,7 +35,7 @@ docker:
 # help: setup                 - Setup GCP Infra and Feast feature store
 .PHONY: setup
 setup:
-	@docker compose run setup ./setup/setup.sh
+	@docker compose run setup /bin/bash -c ./setup/setup.sh
 
 
 # help: jupyter               - Spin up a jupyter notebook to explore dataset and model
@@ -47,4 +47,4 @@ jupyter:
 # help: teardown              - Teardown GCP infra and Feast
 .PHONY: teardown
 teardown:
-	@docker compose run setup ./setup/teardown.sh
+	@docker compose run setup /bin/bash -c ./setup/teardown.sh
