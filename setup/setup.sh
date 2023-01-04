@@ -64,20 +64,20 @@ gsutil rm $MODEL_STORAGE_URI/ensemble/1/.gitkeep
 
 ## Create Artifact Registry
 echo "\nCreating GCP Artifact Repository for Triton Serving Container"
-gcloud artifacts repositories create nvidia-triton \
-  --repository-format=docker \
-  --location=$GCP_REGION \
-  --description="NVIDIA Triton Docker repository"
+# gcloud artifacts repositories create nvidia-triton \
+#   --repository-format=docker \
+#   --location=$GCP_REGION \
+#   --description="NVIDIA Triton Docker repository"
 
 ## Pull and Upload Triton Image
 echo "\nPulling Triton Docker Image"
-NGC_TRITON_IMAGE_URI="ghcr.io/redisventures/tritonserver-python-fil:22.11-py3"
-docker pull $NGC_TRITON_IMAGE_URI
-docker tag $NGC_TRITON_IMAGE_URI $CONTAINER_IMAGE_URI
+# NGC_TRITON_IMAGE_URI="ghcr.io/redisventures/tritonserver-python-fil:22.11-py3"
+# docker pull $NGC_TRITON_IMAGE_URI
+# docker tag $NGC_TRITON_IMAGE_URI $CONTAINER_IMAGE_URI
 
 echo "\nPushing Triton Docker Image to GCP"
-gcloud auth configure-docker $GCP_REGION-docker.pkg.dev
-docker push $CONTAINER_IMAGE_URI
+# gcloud auth configure-docker $GCP_REGION-docker.pkg.dev
+# docker push $CONTAINER_IMAGE_URI
 
 # Create Vertex AI Model
 echo "\nCreating Vertex AI Model"
@@ -85,8 +85,7 @@ gcloud ai models upload \
   --region=$GCP_REGION \
   --display-name=$DEPLOYED_MODEL_NAME \
   --container-image-uri=$CONTAINER_IMAGE_URI \
-  --artifact-uri=$MODEL_STORAGE_URI \
-  --container-command="./entrypoint.sh" \
+  --artifact-uri=$REGISTRY_URI \
   --container-env-vars="REDIS_CONNECTION_STRING=$REDIS_CONNECTION_STRING","REDIS_PASSWORD=$REDIS_PASSWORD","PROJECT_ID=$PROJECT_ID","GCP_REGION=$GCP_REGION","BUCKET_NAME=$BUCKET_NAME"
 
 # Create Endpoint
@@ -112,4 +111,5 @@ gcloud ai endpoints deploy-model $ENDPOINT_ID \
   --region=$GCP_REGION \
   --model=$MODEL_ID \
   --display-name=$DEPLOYED_MODEL_NAME \
-  --machine-type=n1-standard-4
+  --machine-type=n1-standard-2 \
+  --service-account=$SERVICE_ACCOUNT_EMAIL

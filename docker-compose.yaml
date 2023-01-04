@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   setup:
-    container_name: gcp-feast-setup
+    container_name: redis-feast-gcp-setup
     build:
       context: ./
       dockerfile: ./setup/Dockerfile
@@ -14,8 +14,10 @@ services:
       PATH: "${PATH}:/usr/local/gcloud/google-cloud-sdk/bin"
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
   jupyter:
-    image: jupyter/minimal-notebook:python-3.8
     container_name: gcp-feast-jupyter
+    build:
+      context: ./
+      dockerfile: ./jupyter/Dockerfile
     volumes:
       - ./:/home/jovyan/work
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
@@ -25,15 +27,4 @@ services:
       - ".env"
     environment:
       JUPYTER_ENABLE_LAB: "yes"
-      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-  teardown:
-    container_name: gcp-feast-teardown
-    build:
-      context: ./
-      dockerfile: ./teardown/Dockerfile
-    volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
-    env_file:
-      - ".env"
-    environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"

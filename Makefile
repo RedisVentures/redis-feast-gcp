@@ -35,22 +35,16 @@ docker:
 # help: setup                 - Setup GCP Infra and Feast feature store
 .PHONY: setup
 setup:
-	@docker compose run setup
+	@docker compose run setup ./setup/setup.sh
+
 
 # help: jupyter               - Spin up a jupyter notebook to explore dataset and model
 .PHONY: jupyter
 jupyter:
 	@docker compose run --service-ports jupyter
 
-# help: triton               - Spin up Triton
-.PHONY: triton
-triton:
-	@docker compose run --service-ports triton
 
 # help: teardown              - Teardown GCP infra and Feast
 .PHONY: teardown
 teardown:
-	@docker compose run teardown
-
-# help:
-# help:
+	@docker compose run setup ./setup/teardown.sh
