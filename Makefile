@@ -24,7 +24,6 @@ env:
 	@rm -rf .env
 	@./env.sh
 
-
 # help: docker                - Build required docker images
 .PHONY: docker
 docker:
@@ -35,7 +34,17 @@ docker:
 # help: setup                 - Setup GCP Infra and Feast feature store
 .PHONY: setup
 setup:
-	@docker compose run setup /bin/bash -c ./setup/setup.sh
+	@docker compose run setup sh -c "./setup/setup.sh"
+
+# help: upload                 - Upload Triton Model Container to Vertex AI
+.PHONY: upload
+upload:
+	@./setup/upload.sh
+
+# help: deploy                 - Upload Triton Model Container to Vertex AI
+.PHONY: deploy
+deploy:
+	@docker compose run setup sh -c "./setup/deploy.sh"
 
 
 # help: jupyter               - Spin up a jupyter notebook to explore dataset and model
@@ -47,4 +56,4 @@ jupyter:
 # help: teardown              - Teardown GCP infra and Feast
 .PHONY: teardown
 teardown:
-	@docker compose run setup /bin/bash -c ./setup/teardown.sh
+	@docker compose run setup sh -c "./setup/teardown.sh"

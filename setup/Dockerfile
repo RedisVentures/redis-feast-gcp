@@ -19,7 +19,7 @@ COPY ./requirements.txt .
 COPY --from=condaImg /app/python3.8.tar.gz ./setup/models/preprocess/python3.8.tar.gz
 
 RUN apt-get update && \
-    apt-get install -y curl
+    apt-get install curl
 
 ENV CLOUDSDK_INSTALL_DIR="/usr/local/gcloud/"
 RUN curl -sSL https://sdk.cloud.google.com | bash
