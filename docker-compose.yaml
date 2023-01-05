@@ -8,6 +8,7 @@ services:
       dockerfile: ./setup/Dockerfile
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ".env"
     environment:
