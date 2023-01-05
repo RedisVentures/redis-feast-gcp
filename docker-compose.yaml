@@ -3,7 +3,6 @@ version: "3.7"
 services:
   setup:
     container_name: redis-feast-gcp-setup
-    platform: linux/amd64
     build:
       context: ./
       dockerfile: ./setup/Dockerfile
@@ -27,5 +26,4 @@ services:
     env_file:
       - ".env"
     environment:
-      JUPYTER_ENABLE_LAB: "yes"
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"

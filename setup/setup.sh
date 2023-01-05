@@ -58,6 +58,7 @@ CONTAINER_IMAGE_URI=$GCP_REGION-docker.pkg.dev/$PROJECT_ID/nvidia-triton/vertex-
 ENDPOINT_NAME=vaccine-predictor-endpoint
 DEPLOYED_MODEL_NAME=vaccine-predictor
 MODEL_STORAGE_URI=gs://$BUCKET_NAME/models
+ARTIFACT_REPOSITORY_NAME=nvidia-triton
 
 ## Upload Triton Model Repository Contents
 gsutil -m cp -r ./setup/models gs://$BUCKET_NAME/
@@ -65,20 +66,20 @@ gsutil rm $MODEL_STORAGE_URI/ensemble/1/.gitkeep
 
 ## Create Artifact Registry
 echo "\nCreating GCP Artifact Repository for Triton Serving Container"
-# gcloud artifacts repositories create nvidia-triton \
-#   --repository-format=docker \
-#   --location=$GCP_REGION \
-#   --description="NVIDIA Triton Docker repository"
+gcloud artifacts repositories create $ARTIFACT_REPOSITORY_NAME \
+  --repository-format=docker \
+  --location=$GCP_REGION \
+  --description="NVIDIA Triton Docker repository"
 
 ## Pull and Upload Triton Image
 echo "\nPulling Triton Docker Image"
-# NGC_TRITON_IMAGE_URI="ghcr.io/redisventures/tritonserver-python-fil:22.11-py3"
-# docker pull $NGC_TRITON_IMAGE_URI
-# docker tag $NGC_TRITON_IMAGE_URI $CONTAINER_IMAGE_URI
+NGC_TRITON_IMAGE_URI="ghcr.io/redisventures/tritonserver-python-fil:22.11-py3"
+docker pull $NGC_TRITON_IMAGE_URI
+docker tag $NGC_TRITON_IMAGE_URI $CONTAINER_IMAGE_URI
 
 echo "\nPushing Triton Docker Image to GCP"
-# gcloud auth configure-docker $GCP_REGION-docker.pkg.dev
-# docker push $CONTAINER_IMAGE_URI
+gcloud auth configure-docker $GCP_REGION-docker.pkg.dev
+docker push $CONTAINER_IMAGE_URI
 
 # Create Vertex AI Model
 echo "\nCreating Vertex AI Model"
