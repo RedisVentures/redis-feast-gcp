@@ -72,10 +72,7 @@ In order to run this in Google Cloud, you will need a GCP project. The steps are
 
         <img src="https://user-images.githubusercontent.com/13009163/198135033-a16b7ada-5c7c-4a56-bb74-ee038b5076cb.png" width="30%"><img>
 
-
-#### Redis Cloud
-Setup a [Redis Cloud instance](https://app.redislabs.com/) and record the public endpoint `{host}:{port}` and password. **There's a 30Mb Free Tier** which will be perfect for this demo.
-
+    
 #### Environment
 This demo provisions GCP infrastructure from your localhost. So, we need to handle local environment variables, thankfully all handled by Docker and a `.env` file.
 
@@ -84,20 +81,43 @@ Make the env file and enter values as prompted. See template below:
 ```bash
 $ make env
 ```
->REDIS_CONNECTION_STRING={host}:{port}
-
->REDIS_PASSWORD={password}
-
->GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
-
 >PROJECT_ID={gcp-project-id} **(project-id NOT project-number)**
 
 >GCP_REGION={preferred-gcp-region}
 
->BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
+>GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
 
 >SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
 
+>BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
+
+
+  
+Add Redis instance reference to the env file if you are bringing an existing Redis Enterprise instance which can be created manually in [Redis Enterprise Cloud](https://app.redislabs.com/). Make sure to record the public endpoint `{host}:{port}` and password. **There's a 30Mb Free Tier** which will be perfect for this demo.
+```cmd
+cat <<EOF >> .env
+REDIS_CONNECTION_STRING=<host:port>
+REDIS_PASSWORD=<password>
+EOF
+```
+Then, skip to [Build Containers](#build-containers) section.
+        
+If you want to provision a Redis Enterpirse database instance using your existing [Redis Enterprise in Google Cloud Marketplace](https://console.cloud.google.com/marketplace/product/redis-marketplace-isaas/redis-enterprise-cloud-flexible-plan) subscription with the [Make](./Makefile) utility in this repo, you'll follow the steps below:
+1. Collect Redis Enterprise Cloud [Access Key](https://docs.redis.com/latest/rc/api/get-started/enable-the-api/) and [Secret Key](https://docs.redis.com/latest/rc/api/get-started/manage-api-keys/#secret) in Redis Enterpirse Console
+2. Add the keys collected in step 1 to the env file as follows:  
+```cmd
+cat <<EOF >> .env
+REDISCLOUD_ACCESS_KEY=<Redis Enterprise Cloud Access Key>
+REDISCLOUD_SECRET_KEY=<Redis Enterprise Cloud Secret Key>
+REDIS_SUBSCRIPTION_NAME=<Name of your Redis Enterprise Subscription>
+REDIS_SUBSCRIPTION_CIDR=<Deployment CIDR for your Redis Enterprise Subscription cluster, ex. 192.168.88.0/24>
+EOF
+```
+3. Run the following command to deploy your Redis Enterprise database instance
+```cmd
+$ make tf-deploy
+```
+   
 
 #### Build Containers
 Assuming all above steps are done, build the docker images required to run the different apps.
@@ -167,7 +187,9 @@ Cleanup GCP infrastructure and teardown Feature Store.
 ```bash
 $ make teardown
 ```
-
+  
+If you are running the "$ make tf-deploy" command to provision a Redis Enterprise database instance, you'll need to run "$ make tf-destroy" to remove the database instance.
+       
 ### Cleanup
 Besides running the teardown container, you should run `docker compose down` periodically after shutting down containers to clean up excess networks and unused Docker artifacts.
 
