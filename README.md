@@ -18,7 +18,7 @@ The full system will include:
 
 ![architecture](img/redis-feast-gcp-architecture.png)
 
-The architecture takes advantage of GCP managed services in combination with Feast and Redis.
+The architecture takes advantage of GCP managed services in combination with Feast, Redis, and Triton.
 
 - **Feast** feature definitions in a **GitHub** repository (here).
 - Feature registry persisted in a **Cloud Storage** bucket with **Feast** and *COMING SOON* **Cloud Build** for CI/CD.

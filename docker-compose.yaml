@@ -12,7 +12,6 @@ services:
     env_file:
       - ".env"
     environment:
-      PATH: "${PATH}:/usr/local/gcloud/google-cloud-sdk/bin"
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
   jupyter:
     container_name: gcp-feast-jupyter
