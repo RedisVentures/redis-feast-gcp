@@ -30,22 +30,10 @@ docker:
 	@docker build --platform=linux/amd64 -t redisventures/redis-feast-gcp:1.0.0 .
 	@docker compose build
 
-
 # help: setup                 - Setup GCP Infra and Feast feature store
 .PHONY: setup
 setup:
 	@docker compose run setup sh -c "./setup/setup.sh"
-
-# help: upload                 - Upload Triton Model Container to Vertex AI
-.PHONY: upload
-upload:
-	@./setup/upload.sh
-
-# help: deploy                 - Upload Triton Model Container to Vertex AI
-.PHONY: deploy
-deploy:
-	@docker compose run setup sh -c "./setup/deploy.sh"
-
 
 # help: jupyter               - Spin up a jupyter notebook to explore dataset and model
 .PHONY: jupyter
