@@ -47,35 +47,17 @@ docker:
 	@docker build --platform=linux/amd64 -t redisventures/redis-feast-gcp:1.0.0 .
 	@docker compose build
 
-
 # help: setup                 - Setup GCP Infra and Feast feature store
 .PHONY: setup
 setup:
-	@docker compose run setup
-
-
-# help: train                 - Train Vaccine Demand model
-.PHONY: train
-train:
-	@docker compose run train
-
+	@docker compose run setup sh -c "./setup/setup.sh"
 
 # help: jupyter               - Spin up a jupyter notebook to explore dataset and model
 .PHONY: jupyter
 jupyter:
 	@docker compose run --service-ports jupyter
 
-
-# help: serve                 - Serve Vaccine Demand model
-.PHONY: serve
-serve:
-	@docker compose run --service-ports serve
-
-
 # help: teardown              - Teardown GCP infra and Feast
 .PHONY: teardown
 teardown:
-	@docker compose run teardown
-
-# help:
-# help:
+	@docker compose run setup sh -c "./setup/teardown.sh"

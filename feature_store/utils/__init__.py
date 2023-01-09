@@ -1,2 +1,3 @@
 from .data_fetcher import DataFetcher
-from .model_repo import ModelRepo
+from .triton_model_repo import TritonGCSModelRepo
+from .redis_model_repo import RedisModelRepo

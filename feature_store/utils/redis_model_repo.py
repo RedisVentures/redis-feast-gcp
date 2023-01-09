@@ -2,7 +2,7 @@ import pickle
 import redis
 
 
-class ModelRepo:
+class RedisModelRepo:
     model_prefix = "model"
     versions = "versions"
     latest = "latest"

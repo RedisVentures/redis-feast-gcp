@@ -5,6 +5,8 @@
 *.egg-info
 .env
 *build
+*.tar.gz
+instances.json
 
 ### Terraform ###
 **/.terraform/*
@@ -17,4 +19,3 @@ crash.*.log
 *.tfvars.json
 .terraformrc
 terraform.rc
-

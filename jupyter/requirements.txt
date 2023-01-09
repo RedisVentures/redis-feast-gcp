@@ -1,0 +1,5 @@
+matplotlib==3.6.2
+seaborn==0.12.2
+evidently==0.2.1
+pandas==1.5.2
+xgboost==1.6.2
