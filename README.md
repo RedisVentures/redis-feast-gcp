@@ -31,17 +31,15 @@ By the end of this tutorial, you will have all components running in your GCP pr
 
 ___
 
-## Getting Started
+# Getting Started
 The demo contains several smaller apps organized by Docker Compose. Below we will cover prereq's and setup tasks.
 
-### Prerequisites
+## Prerequisites
 
-#### Docker
+### Docker
 Install Docker on your machine. [Docker Desktop](https://www.docker.com/products/docker-desktop/) is best, thanks to it's ease of use, in our opinion.
 
-#### ☁️ GCP
-
-#### GCP Account Setup
+###  ☁️ GCP Account Setup
 
 In order to run this in Google Cloud, you will need a GCP project. The steps are
 
@@ -56,8 +54,8 @@ In order to run this in Google Cloud, you will need a GCP project. The steps are
 
         <img src="https://user-images.githubusercontent.com/13009163/198135033-a16b7ada-5c7c-4a56-bb74-ee038b5076cb.png" width="30%"><img>
 
-    
-#### Environment
+
+### Environment
 This demo provisions GCP infrastructure from your localhost. So, we need to handle local environment variables, thankfully all handled by Docker and a `.env` file.
 
 
@@ -71,25 +69,24 @@ $ make env
 
 >GOOGLE_APPLICATION_CREDENTIALS={local-path-to-gcp-creds}
 
->SERVICE_ACCOUNT_EMAIL={your-gcp-svc-account-email}
+>SERVICE_ACCOUNT_EMAIL={your-gcp-scv-account-email}
 
 >BUCKET_NAME={your-gcp-bucket-name} **(must be globally unique)**
 
-
-  
-Add Redis instance reference to the env file if you are bringing an existing Redis Enterprise instance which can be created manually in [Redis Enterprise Cloud](https://app.redislabs.com/). Make sure to record the public endpoint `{host}:{port}` and password. **There's a 30Mb Free Tier** which will be perfect for this demo.
-```cmd
+### Redis
+If you are bringing an existing Redis Enterprise instance from [Redis Enterprise Cloud](https://app.redislabs.com/), add Redis instance reference to the env file. Make sure to record the public endpoint `{host}:{port}` and password. **There's a 30Mb Free Tier** which will be perfect for this demo.
+```bash
 cat <<EOF >> .env
 REDIS_CONNECTION_STRING=<host:port>
 REDIS_PASSWORD=<password>
 EOF
 ```
 Then, skip to [Build Containers](#build-containers) section.
-        
+
 If you want to provision a Redis Enterpirse database instance using your existing [Redis Enterprise in Google Cloud Marketplace](https://console.cloud.google.com/marketplace/product/redis-marketplace-isaas/redis-enterprise-cloud-flexible-plan) subscription with the [Make](./Makefile) utility in this repo, you'll follow the steps below:
 1. Collect Redis Enterprise Cloud [Access Key](https://docs.redis.com/latest/rc/api/get-started/enable-the-api/) and [Secret Key](https://docs.redis.com/latest/rc/api/get-started/manage-api-keys/#secret) in Redis Enterpirse Console
-2. Add the keys collected in step 1 to the env file as follows:  
-```cmd
+2. Add the keys collected in step 1 to the env file as follows:
+```bash
 cat <<EOF >> .env
 REDISCLOUD_ACCESS_KEY=<Redis Enterprise Cloud Access Key>
 REDISCLOUD_SECRET_KEY=<Redis Enterprise Cloud Secret Key>
@@ -98,12 +95,12 @@ REDIS_SUBSCRIPTION_CIDR=<Deployment CIDR for your Redis Enterprise Subscription 
 EOF
 ```
 3. Run the following command to deploy your Redis Enterprise database instance
-```cmd
+```bash
 $ make tf-deploy
 ```
-   
 
-#### Build Containers
+
+### Build Containers
 Assuming all above steps are done, build the docker images required to run the different setup steps.
 
 From the root of the project, run:
@@ -117,11 +114,11 @@ $ make docker
 export DOCKER_BUILDKIT=0
 ```
 
-The script will build a [base Docker image](./Dockerfile) and then build separate images for each setup step: [`setup`](setup/) and [`jupyter`](jupyter/). 
+The script will build a [base Docker image](./Dockerfile) and then build separate images for each setup step: [`setup`](setup/) and [`jupyter`](jupyter/).
 
 >This will take some time, so grab a cup of coffee.
 
-### Infra Setup
+## Infra Setup
 The provided [Makefile](./Makefile) wraps bash and Docker commands to make it super easy to run. This particular step:
 - Provisions GCP infrastructure
 - Generates the feature store
@@ -132,18 +129,18 @@ $ make setup
 ```
 >At the completion of this step, most of the architecture above will be deployed in your GCP project.
 
-#### About Triton on Vertex AI
+### About Triton on Vertex AI
 
-As noted above, Vertex AI allows you to [deploy a custom serving container](https://cloud.google.com/vertex-ai/docs/predictions/use-custom-container) as long as it meets specific baseline requirements. This allows us to use one of our favorite serving frameworks: NVIDIA's [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server). NVIDIA and GCP already did the legwork to integrate their products so that we can use them together:
+As noted above, Vertex AI allows you to [deploy a custom serving container](https://cloud.google.com/vertex-ai/docs/predictions/use-custom-container) as long as it meets baseline requirements. Additionally, we can use a popular serving frameworks like NVIDIA's [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server). NVIDIA and GCP already did the integration legwork so that we can use them together:
 
 ![triton](img/triton-vertex.png)
 
-A Triton ensemble model can be served with Vertex AI and leverage Redis and Feast for low latency feature retrieval, combining the best in class hardware and software to serve models in real time.
+In this architecture, a Triton ensemble model combines both a Python backend step (for Feast feature retrieval) and a FIL backend step (for the XGboost model). It's packaged, hosted and served by Vertex AI Prediction.
 
 ___
 
 ### Other Components
-Now that the Feature Store is in place, utilize the following add-ons to perform different tasks as desired.
+With the Feature Store in place, utilize the following add-ons to perform different tasks as desired.
 
 #### Jupyter Notebooks
 This repo provides several helper/tutorial notebooks for working with Feast, Redis, and GCP. Open a Jupyter session to explore these resources:
@@ -158,9 +155,9 @@ Cleanup GCP infrastructure and teardown Feature Store.
 ```bash
 $ make teardown
 ```
-  
-If you are running the "$ make tf-deploy" command to provision a Redis Enterprise database instance, you'll need to run "$ make tf-destroy" to remove the database instance.
-       
+
+If you are running the `make tf-deploy` command to provision a Redis Enterprise database instance, you'll need to run "$ make tf-destroy" to remove the database instance.
+
 ### Cleanup
 Besides running the teardown container, you can run `docker compose down` periodically after shutting down containers to clean up excess networks and unused Docker artifacts.
 
