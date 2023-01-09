@@ -7,3 +7,15 @@
 *build
 *.tar.gz
 instances.json
+
+### Terraform ###
+**/.terraform/*
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+.terraformrc
+terraform.rc
