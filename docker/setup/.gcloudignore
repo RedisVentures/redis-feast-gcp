@@ -1,3 +1,4 @@
 img
 models
 *.ipynb
+/opt/venv

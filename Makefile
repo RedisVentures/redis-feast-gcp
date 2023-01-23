@@ -44,7 +44,7 @@ tf-destroy:
 # help: docker                - Build required docker images
 .PHONY: docker
 docker:
-	@docker build --platform=linux/amd64 -t redisventures/redis-feast-gcp:1.0.0 .
+	@docker build -t redisventures/redis-feast-gcp:1.0.0 -f docker/Dockerfile.base .
 	@docker compose build
 
 # help: setup                 - Setup GCP Infra and Feast feature store

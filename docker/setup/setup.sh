@@ -27,7 +27,7 @@ bq --location=us mk --dataset $PROJECT_ID:gcp_feast_demo
 echo "\nCreating cloud function for materialization"
 mv setup/materialize.py .
 gcloud functions deploy feast-update-features \
-    --source=./ \
+    --source=./setup \
     --ignore-file=./setup/.gcloudignore \
     --entry-point=main \
     --memory=1024MB \

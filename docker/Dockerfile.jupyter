@@ -1,20 +1,19 @@
+FROM redisventures/redis-feast-gcp:1.0.0 as pythonImg
+
 FROM jupyter/minimal-notebook:python-3.8 as jupyterImg
 
 WORKDIR /home/jovyan/work
 
 USER root
+
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
 
+# Copy over Virtual Python Env
+COPY --from=pythonImg /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 RUN python3 -m pip install --upgrade pip setuptools wheel
-
-# Copy over resources
-COPY setup.py ./
-COPY setup.cfg ./
-COPY ./feature_store ./feature_store/
-
-# Install Feature Store package
-RUN pip install -e .
 
 COPY ./jupyter/requirements.txt .
 RUN python3 -m pip install -r requirements.txt

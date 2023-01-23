@@ -1,14 +1,14 @@
 # Creating Custom Triton Image
 
-We need to create a Docker image that has NVIDIA Triton along with the following customizations:
+We provide this custom image for you to use, hosted from our GitHub Container Registry at RedisVentures. **But if you wish to re-create, follow these steps. This is NOT required**.
+
+The project requires a Docker image with NVIDIA Triton along with the following customizations:
 
 - Python and FIL backends.
 - Smaller size -- down to ~8Gb instead of ~21Gb.
 - Custom `ENTRYPOINT` and required libraries.
 
-We provide this custom image for you to use, hosted from our GitHub Container Registry at RedisVentures... But if you wish to re-create, follow these steps.
-
->Recommended to perform these steps in a linux VM environment with x86_64 CPU architecture.
+>If doing yourself, we recommend performing these steps in a linux VM environment with x86_64 CPU architecture.
 
 ## Pull Repos and Create FIL Backend
 ```bash
@@ -29,7 +29,7 @@ cd ../server/
 
 python3 compose.py --backend python --backend fil --container-version 22.11 --dry-run
 ```
-The `--dry-run` option will creates a Dockerfile. We've included the generated [Dockerfile](./Dockerfile) here.
+The `--dry-run` option will creates a Dockerfile. We've included the generated [Dockerfile](../docker/Dockerfile.tritonDockerfile) here.
 
 We added some addition parts from line 80 onwards to handle the custom [`ENTRYPOINT`](./entrypoint.sh) and required libraries:
 ```dockerfile
@@ -48,12 +48,7 @@ ENTRYPOINT ./entrypoint.sh
 Easiest part last:
 
 ```bash
-docker build -t tritonserver_custom -f Dockerfile .
-```
-
-Tag your image whatever you need for GCP Artifact Registry:
-```bash
-docker tag tritonserver_custom $GCP_REGION-docker.pkg.dev/$PROJECT_ID/nvidia-triton/vertex-triton-inference:latest
+docker build -t $GCP_REGION-docker.pkg.dev/$PROJECT_ID/nvidia-triton/vertex-triton-inference:latest -f docker/Dockerfile.triton .
 ```
 
 Push image:

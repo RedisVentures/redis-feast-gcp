@@ -4,8 +4,8 @@ services:
   setup:
     container_name: redis-feast-gcp-setup
     build:
-      context: ./
-      dockerfile: ./setup/Dockerfile
+      context: ./docker
+      dockerfile: ./docker/Dockerfile.setup
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -14,10 +14,10 @@ services:
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
   jupyter:
-    container_name: gcp-feast-jupyter
+    container_name: redis-feast-gcp-jupyter
     build:
-      context: ./
-      dockerfile: ./jupyter/Dockerfile
+      context: ./docker
+      dockerfile: ./docker/Dockerfile.jupyter
     volumes:
       - ./:/home/jovyan/work
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro

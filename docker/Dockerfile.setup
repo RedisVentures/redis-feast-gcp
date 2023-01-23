@@ -2,9 +2,9 @@ FROM continuumio/miniconda3:latest as condaImg
 
 WORKDIR /app
 
-COPY ./setup/environment.yml .
-
 ENV PYTHONNOUSERSITE=True
+
+COPY ./setup/environment.yml .
 
 RUN conda env create -f environment.yml
 RUN conda install -y conda-pack
@@ -15,7 +15,7 @@ FROM redisventures/redis-feast-gcp:1.0.0 as appImg
 WORKDIR /app
 
 COPY ./setup ./setup/
-COPY ./requirements.txt .
+COPY ./triton ./triton/
 COPY --from=condaImg /app/python3.8.tar.gz ./setup/models/preprocess/python3.8.tar.gz
 
 RUN apt-get update && \

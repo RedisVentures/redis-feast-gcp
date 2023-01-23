@@ -1,0 +1,18 @@
+FROM python:3.8-slim-buster
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
+# Add Python Virtual Env
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+COPY setup.py ./
+COPY setup.cfg ./
+COPY ./feature_store ./feature_store/
+
+RUN pip install -e .
