@@ -14,8 +14,12 @@ FROM redisventures/redis-feast-gcp:1.0.0 as appImg
 
 WORKDIR /app
 
-COPY ./setup ./setup/
-COPY ./triton ./triton/
+COPY ./docker/setup ./setup/
+COPY ./docker/triton ./triton/
+COPY ./feature_store ./setup/feature_store/
+COPY ./setup.py ./setup/setup.py
+COPY ./setup.cfg ./setup/setup.cfg
+COPY ./requirements.txt ./setup/requirements.txt
 COPY --from=condaImg /app/python3.8.tar.gz ./setup/models/preprocess/python3.8.tar.gz
 
 RUN apt-get update && \

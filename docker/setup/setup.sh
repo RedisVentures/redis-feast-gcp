@@ -25,7 +25,6 @@ bq --location=us mk --dataset $PROJECT_ID:gcp_feast_demo
 
 # Deploy cloud Function
 echo "\nCreating cloud function for materialization"
-mv setup/materialize.py .
 gcloud functions deploy feast-update-features \
     --source=./setup \
     --ignore-file=./setup/.gcloudignore \
@@ -68,7 +67,7 @@ NGC_TRITON_IMAGE_URI=ghcr.io/redisventures/tritonserver-python-fil:22.11-py3
 MODEL_STORAGE_URI=gs://$BUCKET_NAME/models
 
 ## Upload Triton Model Repository Contents
-gsutil -m cp -r ./setup/models gs://$BUCKET_NAME/
+gsutil -m cp -r ./triton/models gs://$BUCKET_NAME/
 gsutil rm $MODEL_STORAGE_URI/ensemble/1/.gitkeep
 
 # Pull and Upload Triton Image
