@@ -4,7 +4,7 @@ services:
   setup:
     container_name: redis-feast-gcp-setup
     build:
-      context: ./docker
+      context: ./
       dockerfile: ./docker/Dockerfile.setup
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
