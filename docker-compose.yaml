@@ -17,7 +17,7 @@ services:
     container_name: redis-feast-gcp-jupyter
     build:
       context: ./docker
-      dockerfile: ./docker/Dockerfile.jupyter
+      dockerfile: ./Dockerfile.jupyter
     volumes:
       - ./:/home/jovyan/work
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro

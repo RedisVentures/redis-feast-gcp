@@ -46,7 +46,7 @@ class TritonPythonModel:
 
         # Get OUTPUT0 configuration
         output0_config = pb_utils.get_output_config_by_name(
-            model_config, "output__0")
+            model_config, "feature_values")
 
         # Convert Triton types to numpy types
         self.output0_dtype = pb_utils.triton_string_to_numpy(
@@ -90,22 +90,21 @@ class TritonPythonModel:
         # and create a pb_utils.InferenceResponse for each of them.
         for request in requests:
             # Get Input
-            in_0 = pb_utils.get_input_tensor_by_name(request, "input__0")
-            state = in_0.as_numpy().reshape(1)
+            input_tensor = pb_utils.get_input_tensor_by_name(request, "state")
+            state = input_tensor.as_numpy().reshape(1)
             logging.info(state)
 
             # Fetch feature data from Feast db
             feature_vector = self.data_fetcher.get_online_data(state=state[0].decode('utf-8'))
             feature_out = feature_vector.to_numpy().reshape(-1, 8)
             logging.info(feature_vector)
-            out_tensor_0 = pb_utils.Tensor(
-                "output__0",
-                 feature_out.astype(output0_dtype)
-            )
 
             # Create InferenceResponse
             inference_response = pb_utils.InferenceResponse(
-                output_tensors=[out_tensor_0]
+                output_tensors=[pb_utils.Tensor(
+                    "feature_values",
+                    feature_out.astype(output0_dtype)
+                )]
             )
             responses.append(inference_response)
 

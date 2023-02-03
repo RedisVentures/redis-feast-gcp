@@ -3,7 +3,7 @@ backend: "python"
 max_batch_size: 256
 input [
 {
-    name: "input__0"
+    name: "state"
     data_type: TYPE_STRING
     dims: [ 1 ]
 }
@@ -11,7 +11,7 @@ input [
 
 output [
 {
-    name: "output__0"
+    name: "feature_values"
     data_type: TYPE_FP32
     dims: [ 8 ]
 }
