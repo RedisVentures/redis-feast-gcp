@@ -1,0 +1,27 @@
+FROM python:3.8-slim-buster
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
+# Add Python Virtual Env
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+COPY setup.py ./
+COPY setup.cfg ./
+COPY ./feature_store ./feature_store/
+
+RUN pip install -e .
+
+RUN apt-get update \
+    && echo "Installing curl" \
+    && apt-get install -y curl
+
+# Install GCloud CLI
+ENV CLOUDSDK_INSTALL_DIR="/usr/local/gcloud/"
+RUN curl -sSL https://sdk.cloud.google.com | bash
+ENV PATH="/usr/local/gcloud/google-cloud-sdk/bin:$PATH"

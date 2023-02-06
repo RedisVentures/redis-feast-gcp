@@ -1,0 +1,45 @@
+name: "ensemble"
+platform: "ensemble"
+max_batch_size: 256
+input [
+  {
+    name: "state"
+    data_type: TYPE_STRING
+    dims: 1
+  }
+]
+output [
+  {
+    name: "prediction"
+    data_type: TYPE_FP32
+    dims: 1
+  }
+]
+ensemble_scheduling {
+  step [
+    {
+      model_name: "fetch-vaccine-features"
+      model_version: -1
+      input_map {
+        key: "state"
+        value: "state"
+      }
+      output_map {
+        key: "feature_values"
+        value: "feature_values"
+      }
+    },
+    {
+      model_name: "predict-vaccine-counts"
+      model_version: -1
+      input_map {
+        key: "input__0"
+        value: "feature_values"
+      }
+      output_map {
+        key: "output__0"
+        value: "prediction"
+      }
+    }
+  ]
+}

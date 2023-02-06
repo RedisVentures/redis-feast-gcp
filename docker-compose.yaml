@@ -2,64 +2,27 @@ version: "3.7"
 
 services:
   setup:
-    container_name: gcp-feast-setup
+    container_name: redis-feast-gcp-setup
     build:
       context: ./
-      dockerfile: ./setup/Dockerfile
+      dockerfile: ./docker/Dockerfile.setup
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ".env"
     environment:
-      PATH: "${PATH}:/usr/local/gcloud/google-cloud-sdk/bin"
       GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
   jupyter:
-    image: jupyter/minimal-notebook:python-3.8
-    container_name: gcp-feast-jupyter
+    container_name: redis-feast-gcp-jupyter
+    build:
+      context: ./docker
+      dockerfile: ./Dockerfile.jupyter
     volumes:
       - ./:/home/jovyan/work
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
     ports:
       - 8888:8888
-    env_file:
-      - ".env"
-    environment:
-      JUPYTER_ENABLE_LAB: "yes"
-      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-  train:
-    container_name: gcp-feast-train
-    build:
-      context: ./
-      dockerfile: ./train/Dockerfile
-    volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
-    env_file:
-      - ".env"
-    environment:
-      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-  serve:
-    container_name: gcp-feast-serve
-    platform: linux/amd64
-    build:
-      context: ./
-      dockerfile: ./serve/Dockerfile
-    volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
-    env_file:
-      - ".env"
-    environment:
-      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/keys/credentials.json"
-    expose:
-      - 8000
-    ports:
-      - 8000:8000
-  teardown:
-    container_name: gcp-feast-teardown
-    build:
-      context: ./
-      dockerfile: ./teardown/Dockerfile
-    volumes:
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/tmp/keys/credentials.json:ro
     env_file:
       - ".env"
     environment:

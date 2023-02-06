@@ -1,0 +1,29 @@
+FROM continuumio/miniconda3:latest as condaImg
+
+WORKDIR /app
+
+ENV PYTHONNOUSERSITE=True
+
+COPY ./docker/setup/environment.yml ./environment.yml
+
+RUN conda env create -f environment.yml
+RUN conda install -y conda-pack
+RUN conda pack -n py38 -o python3.8.tar.gz
+
+FROM redisventures/redis-feast-gcp:1.0.0 as appImg
+
+WORKDIR /app
+
+COPY ./docker/setup ./setup/
+COPY ./docker/triton ./triton/
+COPY ./feature_store ./setup/feature_store/
+COPY ./setup.py ./setup/setup.py
+COPY ./setup.cfg ./setup/setup.cfg
+COPY ./requirements.txt ./setup/requirements.txt
+COPY --from=condaImg /app/python3.8.tar.gz ./triton/models/fetch-vaccine-features/python3.8.tar.gz
+
+RUN apt-get update && \
+    apt-get install curl -y && \
+    apt-get install docker.io -y
+
+ENV PATH="/usr/local/gcloud/google-cloud-sdk/bin:$PATH"

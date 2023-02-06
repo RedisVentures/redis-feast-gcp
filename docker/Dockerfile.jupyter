@@ -1,0 +1,34 @@
+FROM redisventures/redis-feast-gcp:1.0.0 as pythonImg
+
+FROM jupyter/minimal-notebook:python-3.8 as jupyterImg
+
+WORKDIR /home/jovyan/work
+
+USER root
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
+# Copy over Virtual Python Env
+COPY --from=pythonImg /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+COPY ./jupyter/requirements.txt .
+RUN python3 -m pip install -r requirements.txt
+
+# Install Curl
+RUN apt-get update \
+    && echo "Installing curl" \
+    && apt-get install -y curl \
+    && apt-get install -y tree
+
+# Copy over GCloud CLI
+ENV CLOUDSDK_INSTALL_DIR="/usr/local/gcloud/"
+COPY --from=pythonImg $CLOUDSDK_INSTALL_DIR $CLOUDSDK_INSTALL_DIR
+ENV PATH="/usr/local/gcloud/google-cloud-sdk/bin:$PATH"
+RUN sudo chown jovyan -R ~/
+
+# Define this parameter to install jupyter lab
+ENV JUPYTER_ENABLE_LAB=yes
