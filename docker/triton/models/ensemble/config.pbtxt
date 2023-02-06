@@ -33,11 +33,11 @@ ensemble_scheduling {
       model_name: "predict-vaccine-counts"
       model_version: -1
       input_map {
-        key: "feature_values"
+        key: "input__0"
         value: "feature_values"
       }
       output_map {
-        key: "prediction"
+        key: "output__0"
         value: "prediction"
       }
     }

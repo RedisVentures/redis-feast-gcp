@@ -3,14 +3,14 @@ backend: "fil"
 max_batch_size: 256
 input [
  {
-    name: "feature_values"
+    name: "input__0"
     data_type: TYPE_FP32
     dims: 8
   }
 ]
 output [
  {
-    name: "prediction"
+    name: "output__0"
     data_type: TYPE_FP32
     dims: 1
   }

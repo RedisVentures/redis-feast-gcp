@@ -21,7 +21,8 @@ RUN python3 -m pip install -r requirements.txt
 # Install Curl
 RUN apt-get update \
     && echo "Installing curl" \
-    && apt-get install -y curl
+    && apt-get install -y curl \
+    && apt-get install -y tree
 
 # Copy over GCloud CLI
 ENV CLOUDSDK_INSTALL_DIR="/usr/local/gcloud/"
