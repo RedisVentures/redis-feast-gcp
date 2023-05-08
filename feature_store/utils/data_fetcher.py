@@ -6,17 +6,17 @@ from typing import Optional
 
 class DataFetcher:
     X_cols = [
-        'lag_1_vaccine_interest',
-        'lag_2_vaccine_interest',
-        'lag_1_vaccine_intent',
-        'lag_2_vaccine_intent',
-        'lag_1_vaccine_safety',
-        'lag_2_vaccine_safety',
-        'lag_1_weekly_vaccinations_count',
-        'lag_2_weekly_vaccinations_count'
+        "lag_1_vaccine_interest",
+        "lag_2_vaccine_interest",
+        "lag_1_vaccine_intent",
+        "lag_2_vaccine_intent",
+        "lag_1_vaccine_safety",
+        "lag_2_vaccine_safety",
+        "lag_1_weekly_vaccinations_count",
+        "lag_2_weekly_vaccinations_count",
     ]
 
-    y_col = ['weekly_vaccinations_count']
+    y_col = ["weekly_vaccinations_count"]
 
     def __init__(self, fs: FeatureStore):
         """
@@ -39,8 +39,7 @@ class DataFetcher:
         """
         try:
             features = self._fs.get_online_features(
-                features=self.serving_feature_svc,
-                entity_rows=[entities]
+                features=self.serving_feature_svc, entity_rows=[entities]
             ).to_df()
             return features[self.X_cols]
         except Exception as why:
@@ -49,7 +48,7 @@ class DataFetcher:
     def get_training_data(
         self,
         entity_df: Optional[pd.DataFrame] = None,
-        entity_query: Optional[str] = None
+        entity_query: Optional[str] = None,
     ) -> pd.DataFrame:
         """
         Fetch point-in-time correct ML Features from the
@@ -65,14 +64,12 @@ class DataFetcher:
         try:
             if entity_df:
                 return self._fs.get_historical_features(
-                    features=self.training_feature_svc,
-                    entity_df=entity_df
+                    features=self.training_feature_svc, entity_df=entity_df
                 ).to_df()
             if entity_query:
                 # Otherwise query the offline source of record
                 return self._fs.get_historical_features(
-                    features=self.training_feature_svc,
-                    entity_df=entity_query
+                    features=self.training_feature_svc, entity_df=entity_query
                 ).to_df()
         except Exception as why:
             print(why)

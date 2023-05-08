@@ -9,14 +9,9 @@ import io
 # and converting Triton input/output types to numpy types.
 import triton_python_backend_utils as pb_utils
 from feature_store.repo import config
-from feature_store.utils import (
-    DataFetcher,
-    logger,
-    storage
-)
+from feature_store.utils import DataFetcher, logger, storage
 
 logging = logger.get_logger()
-
 
 
 class TritonPythonModel:
@@ -42,20 +37,21 @@ class TritonPythonModel:
         """
 
         # You must parse model_config. JSON string is not parsed here
-        self.model_config = model_config = json.loads(args['model_config'])
+        self.model_config = model_config = json.loads(args["model_config"])
 
         # Get OUTPUT0 configuration
         output0_config = pb_utils.get_output_config_by_name(
-            model_config, "feature_values")
+            model_config, "feature_values"
+        )
 
         # Convert Triton types to numpy types
         self.output0_dtype = pb_utils.triton_string_to_numpy(
-            output0_config['data_type'])
+            output0_config["data_type"]
+        )
 
         logging.info("Loading feature store")
         self.fs = storage.get_feature_store(
-            config_path=config.REPO_CONFIG,
-            bucket_name=config.BUCKET_NAME
+            config_path=config.REPO_CONFIG, bucket_name=config.BUCKET_NAME
         )
         logging.info("Loading feature store")
         self.data_fetcher = DataFetcher(self.fs)
@@ -95,16 +91,17 @@ class TritonPythonModel:
             logging.info(state)
 
             # Fetch feature data from Feast db
-            feature_vector = self.data_fetcher.get_online_data(state=state[0].decode('utf-8'))
+            feature_vector = self.data_fetcher.get_online_data(
+                state=state[0].decode("utf-8")
+            )
             feature_out = feature_vector.to_numpy().reshape(-1, 8)
             logging.info(feature_vector)
 
             # Create InferenceResponse
             inference_response = pb_utils.InferenceResponse(
-                output_tensors=[pb_utils.Tensor(
-                    "feature_values",
-                    feature_out.astype(output0_dtype)
-                )]
+                output_tensors=[
+                    pb_utils.Tensor("feature_values", feature_out.astype(output0_dtype))
+                ]
             )
             responses.append(inference_response)
 
@@ -116,4 +113,4 @@ class TritonPythonModel:
         Implementing `finalize` function is OPTIONAL. This function allows
         the model to perform any necessary clean ups before exit.
         """
-        logging.info('Cleaning up...')
+        logging.info("Cleaning up...")

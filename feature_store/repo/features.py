@@ -3,17 +3,8 @@ import tempfile
 
 from datetime import timedelta
 from google.cloud import bigquery
-from feast import (
-    BigQuerySource,
-    Entity,
-    FeatureService,
-    FeatureView,
-    Field
-)
-from feast.types import (
-    Float32,
-    Int64
-)
+from feast import BigQuerySource, Entity, FeatureService, FeatureView, Field
+from feast.types import Float32, Int64
 from feature_store.repo import config
 from feature_store.utils import storage
 
@@ -30,7 +21,7 @@ vaccine_search_trends_src = BigQuerySource(
     table=f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.VACCINE_SEARCH_TRENDS_TABLE}",
     # The event timestamp is used for point-in-time joins and for ensuring only
     # features within the TTL are returned
-    timestamp_field="date"
+    timestamp_field="date",
 )
 
 # Feature views are a grouping based on how features are stored in either the
@@ -59,7 +50,7 @@ vaccine_search_trends_fv = FeatureView(
         Field(name="lag_1_vaccine_intent", dtype=Float32),
         Field(name="lag_2_vaccine_intent", dtype=Float32),
         Field(name="lag_1_vaccine_safety", dtype=Float32),
-        Field(name="lag_2_vaccine_safety", dtype=Float32)
+        Field(name="lag_2_vaccine_safety", dtype=Float32),
     ],
     source=vaccine_search_trends_src,
 )
@@ -68,7 +59,7 @@ vaccine_search_trends_fv = FeatureView(
 weekly_vaccinations_src = BigQuerySource(
     name="weekly_vaccinations_src",
     table=f"{config.PROJECT_ID}.{config.BIGQUERY_DATASET_NAME}.{config.WEEKLY_VACCINATIONS_TABLE}",
-    timestamp_field="date"
+    timestamp_field="date",
 )
 
 weekly_vaccinations_fv = FeatureView(
@@ -78,7 +69,7 @@ weekly_vaccinations_fv = FeatureView(
     schema=[
         Field(name="lag_1_weekly_vaccinations_count", dtype=Int64),
         Field(name="lag_2_weekly_vaccinations_count", dtype=Int64),
-        Field(name="weekly_vaccinations_count", dtype=Int64)
+        Field(name="weekly_vaccinations_count", dtype=Int64),
     ],
     source=weekly_vaccinations_src,
 )
@@ -88,27 +79,19 @@ serving_features = FeatureService(
     name="serving_features",
     features=[
         vaccine_search_trends_fv,
-        weekly_vaccinations_fv[[
-            "lag_1_weekly_vaccinations_count",
-            "lag_2_weekly_vaccinations_count"
-        ]]
+        weekly_vaccinations_fv[
+            ["lag_1_weekly_vaccinations_count", "lag_2_weekly_vaccinations_count"]
+        ],
     ],
 )
 
 training_features = FeatureService(
     name="training_features",
-    features=[
-        vaccine_search_trends_fv,
-        weekly_vaccinations_fv
-    ],
+    features=[vaccine_search_trends_fv, weekly_vaccinations_fv],
 )
 
 
-def generate_vaccine_search_trends(
-    logging,
-    client: bigquery.Client,
-    table_id: str
-):
+def generate_vaccine_search_trends(logging, client: bigquery.Client, table_id: str):
     """
     Generate and upload weekly vaccine search trends features derived from a public
     Google dataset stored in BigQuery.
@@ -118,8 +101,7 @@ def generate_vaccine_search_trends(
         table_id (str): Table ID for this feature set.
     """
     job_config = bigquery.QueryJobConfig(
-        destination=table_id,
-        write_disposition='WRITE_TRUNCATE'
+        destination=table_id, write_disposition="WRITE_TRUNCATE"
     )
     sql = f"""
     WITH vaccine_trends AS (
@@ -177,11 +159,8 @@ def generate_vaccine_search_trends(
     query_job.result()
     logging.info("Generated weekly vaccine search trends features")
 
-def generate_vaccine_counts(
-    logging,
-    client: bigquery.Client,
-    table_id: str
-):
+
+def generate_vaccine_counts(logging, client: bigquery.Client, table_id: str):
     """
     Generate and upload vaccine count features from a CSV to BigQuery.
 
@@ -197,36 +176,62 @@ def generate_vaccine_counts(
 
     # Download the CSV file from URL
     storage.download_file_url(
-        filename=input_filename,
-        url=config.DAILY_VACCINATIONS_CSV_URL
+        filename=input_filename, url=config.DAILY_VACCINATIONS_CSV_URL
     )
 
     logging.info("Loading us_state_vaccinations.csv")
-    df = pd.read_csv(input_filename)[['date', 'location', 'daily_vaccinations']]
+    df = pd.read_csv(input_filename)[["date", "location", "daily_vaccinations"]]
     logging.info(f"Loaded {len(df)} daily vaccination records")
 
     logging.info("Cleaning dataset")
-    df['date'] = df['date'].astype('datetime64[ns]')
+    df["date"] = df["date"].astype("datetime64[ns]")
 
     logging.info("Truncating records and filling NaNs")
-    df = df[(~df.location.isin(['United States', 'Long Term Care'])) & (df.date >= '2021-1-1')].fillna(0)
+    df = df[
+        (~df.location.isin(["United States", "Long Term Care"]))
+        & (df.date >= "2021-1-1")
+    ].fillna(0)
     logging.info(f"{len(df)} daily records remaining")
 
     logging.info("Rolling up counts into weeks starting on Mondays")
-    df = df.groupby([pd.Grouper(freq='W-Mon', key='date'), 'location'])['daily_vaccinations'].sum().reset_index()
-    df.rename(columns={'daily_vaccinations': 'lag_1_weekly_vaccinations_count', 'location': 'state'}, inplace=True)
-    logging.info(f"{len(df)} weekly vaccine count records for {len(df.state.value_counts())} total states & territories")
+    df = (
+        df.groupby([pd.Grouper(freq="W-Mon", key="date"), "location"])[
+            "daily_vaccinations"
+        ]
+        .sum()
+        .reset_index()
+    )
+    df.rename(
+        columns={
+            "daily_vaccinations": "lag_1_weekly_vaccinations_count",
+            "location": "state",
+        },
+        inplace=True,
+    )
+    logging.info(
+        f"{len(df)} weekly vaccine count records for {len(df.state.value_counts())} total states & territories"
+    )
 
     logging.info("Creating lagged features")
-    df['weekly_vaccinations_count'] = df.groupby('state').lag_1_weekly_vaccinations_count.shift(periods=-1)
-    df['lag_2_weekly_vaccinations_count'] = df.groupby('state').lag_1_weekly_vaccinations_count.shift(periods=1)
-    df.sort_values(['date', 'state'], inplace=True)
+    df["weekly_vaccinations_count"] = df.groupby(
+        "state"
+    ).lag_1_weekly_vaccinations_count.shift(periods=-1)
+    df["lag_2_weekly_vaccinations_count"] = df.groupby(
+        "state"
+    ).lag_1_weekly_vaccinations_count.shift(periods=1)
+    df.sort_values(["date", "state"], inplace=True)
 
     logging.info("Saving dataframe...")
-    df['weekly_vaccinations_count'] = df['weekly_vaccinations_count'].astype('Int64', errors='ignore')
-    df['lag_1_weekly_vaccinations_count'] = df['lag_1_weekly_vaccinations_count'].astype('Int64', errors='ignore')
-    df['lag_2_weekly_vaccinations_count'] = df['lag_2_weekly_vaccinations_count'].astype('Int64', errors='ignore')
-    df['date'] = df['date'].dt.strftime("%Y-%m-%d %H:%M:%S")
+    df["weekly_vaccinations_count"] = df["weekly_vaccinations_count"].astype(
+        "Int64", errors="ignore"
+    )
+    df["lag_1_weekly_vaccinations_count"] = df[
+        "lag_1_weekly_vaccinations_count"
+    ].astype("Int64", errors="ignore")
+    df["lag_2_weekly_vaccinations_count"] = df[
+        "lag_2_weekly_vaccinations_count"
+    ].astype("Int64", errors="ignore")
+    df["date"] = df["date"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     logging.info("Uploading CSV")
     # Save back to tempfile
@@ -236,7 +241,7 @@ def generate_vaccine_counts(
     storage.upload_file(
         local_filename=output_filename,
         remote_filename=output_storage_filename,
-        bucket_name=config.BUCKET_NAME
+        bucket_name=config.BUCKET_NAME,
     )
 
     # Load bq job config
@@ -246,19 +251,19 @@ def generate_vaccine_counts(
             bigquery.SchemaField("state", "STRING"),
             bigquery.SchemaField("lag_1_weekly_vaccinations_count", "INTEGER"),
             bigquery.SchemaField("weekly_vaccinations_count", "INTEGER"),
-            bigquery.SchemaField("lag_2_weekly_vaccinations_count", "INTEGER")
+            bigquery.SchemaField("lag_2_weekly_vaccinations_count", "INTEGER"),
         ],
         skip_leading_rows=1,
         max_bad_records=2,
         source_format=bigquery.SourceFormat.CSV,
-        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
     )
     # Start the job
     logging.info("Running query")
     load_job = client.load_table_from_uri(
         f"gs://{config.BUCKET_NAME}/{output_storage_filename}",
         table_id,
-        job_config=job_config
+        job_config=job_config,
     )
     # Wait for job to complete
     load_job.result()
