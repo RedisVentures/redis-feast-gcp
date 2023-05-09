@@ -1,0 +1,10 @@
+# Translating Feats to featureform
+
+Key Differences:
+[] docker/setup/apply.py -> Can instead be substituted by the `featureform apply` command
+[] docker/setup/materialize.py -> Not needed; Featureformt akes care of the materialization upon apply & scheduling included
+[] feature_store/data_fetcher.py -> Serving features for training & inference from the ServingClient
+[] create.py + features.py -> Can be combined to create the definitions.py
+
+Specifically, because Featureform leverages Kubernetes for orchestration, Cloud Functions and Cloud Scheduler aren't needed. 
+Featureform also doesn't need to store the definitions in a 3rd backing store like GCS Buckets. 
